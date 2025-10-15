@@ -12,4 +12,14 @@ export class NavbarComponent {
     { label: 'Candidatos', route: '/candidatos' },
     { label: 'Nosotros', route: '/nosotros' }
   ];
+
+  isMobileMenuOpen = false;
+
+  toggleMobileMenu() {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
+
+  closeMobileMenu() {
+    this.isMobileMenuOpen = false;
+  }
 }

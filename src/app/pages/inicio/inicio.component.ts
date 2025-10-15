@@ -6,5 +6,5 @@ import { Component } from '@angular/core';
   templateUrl: './inicio.component.html',
 })
 export class InicioComponent {
-  backgroundImage = '/images/homeBackground1.png';
+  backgroundImage = '/images/homeBackground.jpg';
 }
