@@ -2,14 +2,14 @@
   <div class="hero-overlay"></div>
   <div class="hero-content w-full px-2 sm:px-4">
     <!-- Loading -->
-    @if (loading) {
+    @if (loading()) {
       <div class="flex justify-center items-center">
         <span class="loading loading-spinner loading-lg text-primary"></span>
       </div>
     }
 
     <!-- Error -->
-    @if (error) {
+    @if (error()) {
       <div class="alert alert-error w-full max-w-6xl mx-auto mt-20">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -22,21 +22,21 @@
             stroke-width="2"
             d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
-        <span>{{ error }}</span>
+        <span>{{ error() }}</span>
       </div>
     }
 
     <!-- Tabla de candidatos -->
-    @if (!loading && !error) {
+    @if (!loading() && !error()) {
       <div class="w-full max-w-6xl mt-20 space-y-4">
         <!-- Info: Total de candidatos y página actual -->
         <div class="flex justify-between items-center px-2 text-sm text-primary-content">
           <span>
-            Mostrando {{ (currentPage - 1) * itemsPerPage + 1 }} - 
-            {{ Math.min(currentPage * itemsPerPage, candidatos.length) }} 
-            de {{ candidatos.length }} candidatos
+            Mostrando {{ (currentPage() - 1) * itemsPerPage + 1 }} - 
+            {{ Math.min(currentPage() * itemsPerPage, candidatos().length) }} 
+            de {{ candidatos().length }} candidatos
           </span>
-          <span class="hidden sm:inline">Página {{ currentPage }} de {{ totalPages }}</span>
+          <span class="hidden sm:inline">Página {{ currentPage() }} de {{ totalPages() }}</span>
         </div>
 
         <!-- Tabla -->
@@ -53,7 +53,7 @@
               </tr>
             </thead>
             <tbody>
-              @for (candidato of paginatedCandidatos; track candidato.id) {
+              @for (candidato of paginatedCandidatos(); track candidato.id) {
                 <!-- Fila principal -->
                 <tr class="hover">
                   <td>
@@ -211,10 +211,10 @@
             </button>
             
             <!-- Números de página -->
-            @for (page of pageNumbers; track page) {
+            @for (page of pageNumbers(); track page) {
               <button 
                 class="join-item btn btn-sm sm:btn-md"
-                [class.btn-active]="page === currentPage"
+                [class.btn-active]="page === currentPage()"
                 (click)="goToPage(page)">
                 {{ page }}
               </button>

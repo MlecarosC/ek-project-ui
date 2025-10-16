@@ -6,10 +6,9 @@ import { Component } from '@angular/core';
   templateUrl: './nosotros.component.html',
 })
 export class NosotrosComponent {
-  photoUrl = "/images/me.jpg"
-  photoAlt = "Martin Lecaros"
+  readonly photoUrl = '/images/me.jpg';
+  readonly photoAlt = 'Martin Lecaros';
 
-  // Prevenir click derecho en la imagen
   onImageRightClick(event: MouseEvent): boolean {
     event.preventDefault();
     return false;

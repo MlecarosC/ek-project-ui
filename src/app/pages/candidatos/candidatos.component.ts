@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AdjuntoService } from '../../core/services/adjunto.service';
 import { CandidatoView } from '../../shared/models/candidato-view.model';
@@ -11,16 +11,50 @@ import { CandidatoView } from '../../shared/models/candidato-view.model';
 export class CandidatosComponent implements OnInit {
   Math = Math;
   
-  candidatos: CandidatoView[] = [];
-  loading = true;
-  error = '';
-  
-  // Control de filas expandidas
-  expandedRows = new Set<number>();
-
-  // Paginación
-  currentPage = 1;
+  candidatos = signal<CandidatoView[]>([]);
+  loading = signal(true);
+  error = signal('');
+  expandedRows = signal<Set<number>>(new Set());
+  currentPage = signal(1);
   itemsPerPage = 5;
+
+  paginatedCandidatos = computed(() => {
+    const startIndex = (this.currentPage() - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    return this.candidatos().slice(startIndex, endIndex);
+  });
+
+  totalPages = computed(() => 
+    Math.ceil(this.candidatos().length / this.itemsPerPage)
+  );
+
+  pageNumbers = computed(() => {
+    const pages: number[] = [];
+    const maxPagesToShow = 5;
+    const total = this.totalPages();
+    const current = this.currentPage();
+    
+    if (total <= maxPagesToShow) {
+      for (let i = 1; i <= total; i++) {
+        pages.push(i);
+      }
+    } else {
+      let startPage = Math.max(1, current - 2);
+      let endPage = Math.min(total, current + 2);
+      
+      if (current <= 3) {
+        endPage = 5;
+      } else if (current >= total - 2) {
+        startPage = total - 4;
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+    }
+    
+    return pages;
+  });
 
   private readonly AVATAR_CACHE_KEY = 'candidatos-avatars';
   private readonly CURRENT_PAGE_KEY = 'candidatos-current-page';
@@ -32,9 +66,15 @@ export class CandidatosComponent implements OnInit {
     'https://img.daisyui.com/images/profile/demo/5@94.webp'
   ];
 
-  constructor(private adjuntoService: AdjuntoService) {}
+  constructor(private adjuntoService: AdjuntoService) {
+    effect(() => {
+      const page = this.currentPage();
+      localStorage.setItem(this.CURRENT_PAGE_KEY, page.toString());
+    });
+  }
 
   ngOnInit(): void {
+    this.loadSavedPage();
     this.loadCandidatos();
   }
 
@@ -43,133 +83,77 @@ export class CandidatosComponent implements OnInit {
       next: (data) => {
         const savedAvatars = this.getSavedAvatars();
         
-        this.candidatos = data.map(item => ({
+        const candidatos = data.map(item => ({
           ...item.candidato,
           avatarUrl: this.getOrAssignAvatar(item.candidato.id, savedAvatars),
           adjuntos: item.adjuntos
         }));
         
-        this.saveAvatars(this.candidatos);
-        
-        // Cargar la página guardada después de tener los datos
-        this.loadSavedPage();
-        
-        this.loading = false;
+        this.candidatos.set(candidatos);
+        this.saveAvatars(candidatos);
+        this.loading.set(false);
       },
       error: (error) => {
-        this.error = 'Error al cargar los candidatos';
-        this.loading = false;
+        this.error.set('Error al cargar los candidatos');
+        this.loading.set(false);
         console.error('Error:', error);
       }
     });
   }
 
-  // Obtener candidatos de la página actual
-  get paginatedCandidatos(): CandidatoView[] {
-    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    const endIndex = startIndex + this.itemsPerPage;
-    return this.candidatos.slice(startIndex, endIndex);
-  }
-
-  // Calcular el número total de páginas
-  get totalPages(): number {
-    return Math.ceil(this.candidatos.length / this.itemsPerPage);
-  }
-
-  // Obtener array de números de página para mostrar
-  get pageNumbers(): number[] {
-    const pages: number[] = [];
-    const maxPagesToShow = 5;
-    
-    if (this.totalPages <= maxPagesToShow) {
-      for (let i = 1; i <= this.totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      let startPage = Math.max(1, this.currentPage - 2);
-      let endPage = Math.min(this.totalPages, this.currentPage + 2);
-      
-      if (this.currentPage <= 3) {
-        endPage = 5;
-      } else if (this.currentPage >= this.totalPages - 2) {
-        startPage = this.totalPages - 4;
-      }
-      
-      for (let i = startPage; i <= endPage; i++) {
-        pages.push(i);
-      }
-    }
-    
-    return pages;
-  }
-
-  // Navegar a una página específica
   goToPage(page: number): void {
-    if (page >= 1 && page <= this.totalPages) {
-      this.currentPage = page;
-      this.expandedRows.clear();
-      this.savePage();
+    const total = this.totalPages();
+    if (page >= 1 && page <= total) {
+      this.currentPage.set(page);
+      this.expandedRows.set(new Set());
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 
-  // Ir a la página anterior
   previousPage(): void {
-    if (this.currentPage > 1) {
-      this.goToPage(this.currentPage - 1);
+    if (this.currentPage() > 1) {
+      this.goToPage(this.currentPage() - 1);
     }
   }
 
-  // Ir a la página siguiente
   nextPage(): void {
-    if (this.currentPage < this.totalPages) {
-      this.goToPage(this.currentPage + 1);
+    if (this.currentPage() < this.totalPages()) {
+      this.goToPage(this.currentPage() + 1);
     }
   }
 
-  // Verificar si hay página anterior
   hasPreviousPage(): boolean {
-    return this.currentPage > 1;
+    return this.currentPage() > 1;
   }
 
-  // Verificar si hay página siguiente
   hasNextPage(): boolean {
-    return this.currentPage < this.totalPages;
+    return this.currentPage() < this.totalPages();
   }
 
-  // Guardar la página actual en localStorage
-  private savePage(): void {
-    localStorage.setItem(this.CURRENT_PAGE_KEY, this.currentPage.toString());
-  }
-
-  // Cargar la página guardada desde localStorage
   private loadSavedPage(): void {
     const savedPage = localStorage.getItem(this.CURRENT_PAGE_KEY);
-    
     if (savedPage) {
       const pageNumber = parseInt(savedPage, 10);
-      
-      // Validar que la página guardada sea válida
-      if (pageNumber >= 1 && pageNumber <= this.totalPages) {
-        this.currentPage = pageNumber;
-      } else {
-        // Si la página guardada no es válida, ir a la página 1
-        this.currentPage = 1;
-        this.savePage();
+      if (pageNumber >= 1) {
+        this.currentPage.set(pageNumber);
       }
     }
   }
 
   toggleDetalles(candidatoId: number): void {
-    if (this.expandedRows.has(candidatoId)) {
-      this.expandedRows.delete(candidatoId);
-    } else {
-      this.expandedRows.add(candidatoId);
-    }
+    this.expandedRows.update(current => {
+      const newSet = new Set(current);
+      if (newSet.has(candidatoId)) {
+        newSet.delete(candidatoId);
+      } else {
+        newSet.add(candidatoId);
+      }
+      return newSet;
+    });
   }
 
   isExpanded(candidatoId: number): boolean {
-    return this.expandedRows.has(candidatoId);
+    return this.expandedRows().has(candidatoId);
   }
 
   getFileIcon(extension: string): string {

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
@@ -7,21 +7,21 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   templateUrl: './navbar.component.html',
 })
 export class NavbarComponent {
-  logoUrl = "/images/logo.png"
-  menuItems = [
+  readonly logoUrl = '/images/logo.png';
+  readonly menuItems = [
     { label: 'Inicio', route: '/inicio' },
     { label: 'Candidatos', route: '/candidatos' },
     { label: 'Nosotros', route: '/nosotros' }
   ];
 
-  isMobileMenuOpen = false;
+  isMobileMenuOpen = signal(false);
 
-  toggleMobileMenu() {
-    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  toggleMobileMenu(): void {
+    this.isMobileMenuOpen.update(isOpen => !isOpen);
   }
 
-  closeMobileMenu() {
-    this.isMobileMenuOpen = false;
+  closeMobileMenu(): void {
+    this.isMobileMenuOpen.set(false);
   }
 
   onImageRightClick(event: MouseEvent): boolean {
