@@ -8,5 +8,4 @@ import { NavbarComponent } from './shared/components/navbar/navbar.component';
   templateUrl: './app.html',
 })
 export class App {
-  protected readonly title = signal('ek-project-ui');
 }

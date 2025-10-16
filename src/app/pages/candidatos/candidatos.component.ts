@@ -1,7 +1,17 @@
-import { Component, OnInit, signal, computed, effect } from '@angular/core';
+import { Component, OnInit, signal, computed, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AdjuntoService } from '../../core/services/adjunto.service';
 import { CandidatoView } from '../../shared/models/candidato-view.model';
+
+const AVATAR_CACHE_KEY = 'candidatos-avatars';
+const CURRENT_PAGE_KEY = 'candidatos-current-page';
+
+const AVATAR_IMAGES = [
+  'https://img.daisyui.com/images/profile/demo/2@94.webp',
+  'https://img.daisyui.com/images/profile/demo/3@94.webp',
+  'https://img.daisyui.com/images/profile/demo/4@94.webp',
+  'https://img.daisyui.com/images/profile/demo/5@94.webp'
+] as const;
 
 @Component({
   selector: 'app-candidatos',
@@ -56,20 +66,12 @@ export class CandidatosComponent implements OnInit {
     return pages;
   });
 
-  private readonly AVATAR_CACHE_KEY = 'candidatos-avatars';
-  private readonly CURRENT_PAGE_KEY = 'candidatos-current-page';
-  
-  private avatarImages = [
-    'https://img.daisyui.com/images/profile/demo/2@94.webp',
-    'https://img.daisyui.com/images/profile/demo/3@94.webp',
-    'https://img.daisyui.com/images/profile/demo/4@94.webp',
-    'https://img.daisyui.com/images/profile/demo/5@94.webp'
-  ];
+  private adjuntoService = inject(AdjuntoService);
 
-  constructor(private adjuntoService: AdjuntoService) {
+  constructor() {
     effect(() => {
       const page = this.currentPage();
-      localStorage.setItem(this.CURRENT_PAGE_KEY, page.toString());
+      localStorage.setItem(CURRENT_PAGE_KEY, page.toString());
     });
   }
 
@@ -131,7 +133,7 @@ export class CandidatosComponent implements OnInit {
   }
 
   private loadSavedPage(): void {
-    const savedPage = localStorage.getItem(this.CURRENT_PAGE_KEY);
+    const savedPage = localStorage.getItem(CURRENT_PAGE_KEY);
     if (savedPage) {
       const pageNumber = parseInt(savedPage, 10);
       if (pageNumber >= 1) {
@@ -172,7 +174,7 @@ export class CandidatosComponent implements OnInit {
   }
 
   private getSavedAvatars(): Map<number, string> {
-    const saved = localStorage.getItem(this.AVATAR_CACHE_KEY);
+    const saved = localStorage.getItem(AVATAR_CACHE_KEY);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -192,7 +194,7 @@ export class CandidatosComponent implements OnInit {
   }
 
   private getRandomAvatar(): string {
-    return this.avatarImages[Math.floor(Math.random() * this.avatarImages.length)];
+    return AVATAR_IMAGES[Math.floor(Math.random() * AVATAR_IMAGES.length)];
   }
 
   private saveAvatars(candidatos: CandidatoView[]): void {
@@ -200,6 +202,6 @@ export class CandidatosComponent implements OnInit {
     candidatos.forEach(c => {
       avatarMap[c.id] = c.avatarUrl;
     });
-    localStorage.setItem(this.AVATAR_CACHE_KEY, JSON.stringify(avatarMap));
+    localStorage.setItem(AVATAR_CACHE_KEY, JSON.stringify(avatarMap));
   }
 }
