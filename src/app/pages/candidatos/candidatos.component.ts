@@ -23,7 +23,7 @@ export class CandidatosComponent implements OnInit {
   itemsPerPage = 5;
 
   private readonly AVATAR_CACHE_KEY = 'candidatos-avatars';
-  private readonly CURRENT_PAGE_KEY = 'candidatos-current-page'; // Nueva clave para localStorage
+  private readonly CURRENT_PAGE_KEY = 'candidatos-current-page';
   
   private avatarImages = [
     'https://img.daisyui.com/images/profile/demo/2@94.webp',
@@ -108,7 +108,7 @@ export class CandidatosComponent implements OnInit {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
       this.expandedRows.clear();
-      this.savePage(); // Guardar la página en localStorage
+      this.savePage();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }

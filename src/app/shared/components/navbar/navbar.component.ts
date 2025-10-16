@@ -6,7 +6,8 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   imports: [RouterLink, RouterLinkActive],
   templateUrl: './navbar.component.html',
 })
-export class NavbarComponent { 
+export class NavbarComponent {
+  logoUrl = "/images/logo.png"
   menuItems = [
     { label: 'Inicio', route: '/inicio' },
     { label: 'Candidatos', route: '/candidatos' },
