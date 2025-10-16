@@ -8,4 +8,10 @@ import { Component } from '@angular/core';
 export class NosotrosComponent {
   photoUrl = "/images/me.jpg"
   photoAlt = "Martin Lecaros"
+
+  // Prevenir click derecho en la imagen
+  onImageRightClick(event: MouseEvent): boolean {
+    event.preventDefault();
+    return false;
+  }
 }

@@ -1,7 +1,6 @@
 <div class="hero min-h-screen">
   <div class="hero-overlay"></div>
   <div class="hero-content text-neutral-content w-full px-4 sm:px-6">
-    <!-- Agregar mt-20 aquí, en el contenedor interior -->
     <div class="max-w-4xl w-full mt-20">
       
       <div class="flex flex-col md:flex-row gap-8 md:gap-12 items-center">
@@ -11,7 +10,9 @@
           <img 
             [src]="photoUrl" 
             [alt]="photoAlt" 
-            class="rounded-2xl shadow-2xl w-48 sm:w-64 md:w-80 ring-2 sm:ring-4 ring-primary ring-offset-2 sm:ring-offset-4 ring-offset-base-100"
+            class="rounded-2xl shadow-2xl w-48 sm:w-64 md:w-80 ring-2 sm:ring-4 ring-primary ring-offset-2 sm:ring-offset-4 ring-offset-base-100 pointer-events-none select-none"
+            draggable="false"
+            (contextmenu)="onImageRightClick($event)"
           />
         </div>
 

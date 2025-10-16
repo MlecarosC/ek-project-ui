@@ -23,4 +23,9 @@ export class NavbarComponent {
   closeMobileMenu() {
     this.isMobileMenuOpen = false;
   }
+
+  onImageRightClick(event: MouseEvent): boolean {
+    event.preventDefault();
+    return false;
+  }
 }

@@ -1,9 +1,15 @@
 <div class="navbar absolute top-0 left-0 right-0 z-50 bg-transparent text-white">
     <div class="w-full md:w-5/6 mx-auto flex items-center justify-between px-4 md:px-0">
         <!-- Logo -->
-        <div class="flex-1">
-            <a routerLink="/" class="flex items-center">
-                <img [src]="logoUrl" alt="Logo" class="h-8 w-auto">
+    <div class="flex-1 flex items-center">
+        <a routerLink="/" class="inline-block">
+                <img 
+                    [src]="logoUrl" 
+                    alt="Logo" 
+                    class="h-8 w-auto pointer-events-none select-none"
+                    draggable="false"
+                    (contextmenu)="onImageRightClick($event)"
+                >
             </a>
         </div>
 
