@@ -5,6 +5,4 @@ import { Component } from '@angular/core';
   imports: [],
   templateUrl: './inicio.component.html',
 })
-export class InicioComponent {
-  backgroundImage = '/images/homeBackground.jpg';
-}
+export class InicioComponent { }

@@ -1,160 +1,201 @@
-<div class="flex justify-center items-center min-h-screen p-4">
-    <div class="overflow-x-auto w-full max-w-6xl">
-        <table class="table">
-            <!-- head -->
-            <thead>
+<div class="hero min-h-screen">
+  <div class="hero-overlay"></div>
+  <div class="hero-content w-full px-2 sm:px-4">
+    <!-- Loading -->
+    @if (loading) {
+      <div class="flex justify-center items-center">
+        <span class="loading loading-spinner loading-lg text-primary"></span>
+      </div>
+    }
+
+    <!-- Error -->
+    @if (error) {
+      <div class="alert alert-error w-full max-w-6xl mx-auto mt-20">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="stroke-current shrink-0 h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>{{ error }}</span>
+      </div>
+    }
+
+    <!-- Tabla de candidatos -->
+    @if (!loading && !error) {
+      <div class="w-full max-w-6xl overflow-x-auto mt-20">  <!-- Agregado mt-20 aquí -->
+        <table class="table table-zebra bg-base-100 bg-opacity-90 shadow-2xl">
+          <!-- head -->
+          <thead class="bg-primary text-primary-content">
             <tr>
-                <th>
-                <label>
-                    <input type="checkbox" class="checkbox" />
-                </label>
-                </th>
-                <th>Name</th>
-                <th>Job</th>
-                <th>Favorite Color</th>
-                <th></th>
+              <th>Nombre</th>
+              <th class="hidden md:table-cell">Email</th>
+              <th class="hidden md:table-cell">Teléfono</th>
+              <th class="hidden md:table-cell">Tipo de Documento</th>
+              <th>Acciones</th>
             </tr>
-            </thead>
-            <tbody>
-            <!-- row 1 -->
-            <tr>
-                <th>
-                <label>
-                    <input type="checkbox" class="checkbox" />
-                </label>
-                </th>
+          </thead>
+          <tbody>
+            @for (candidato of candidatos; track candidato.id) {
+              <!-- Fila principal -->
+              <tr class="hover">
                 <td>
-                <div class="flex items-center gap-3">
+                  <div class="flex items-center gap-3">
                     <div class="avatar">
-                    <div class="mask mask-squircle h-12 w-12">
+                      <div class="mask mask-squircle h-10 w-10 sm:h-12 sm:w-12">
                         <img
-                        src="https://img.daisyui.com/images/profile/demo/2@94.webp"
-                        alt="Avatar Tailwind CSS Component" />
-                    </div>
+                          [src]="candidato.avatarUrl"
+                          [alt]="candidato.nombre + ' ' + candidato.apellidos" />
+                      </div>
                     </div>
                     <div>
-                    <div class="font-bold">Hart Hagerty</div>
-                    <div class="text-sm opacity-50">United States</div>
+                      <div class="font-bold text-sm sm:text-base">
+                        {{ candidato.nombre }} {{ candidato.apellidos }}
+                      </div>
+                      <div class="text-xs sm:text-sm opacity-50">
+                        {{ candidato.localizacion }}
+                      </div>
                     </div>
-                </div>
+                  </div>
                 </td>
+                <td class="hidden md:table-cell">{{ candidato.email }}</td>
+                <td class="hidden md:table-cell">{{ candidato.telefono }}</td>
+                <td class="hidden md:table-cell">{{ candidato.tipoDocumento }}</td>
                 <td>
-                Zemlak, Daniel and Leannon
-                <br />
-                <span class="badge badge-ghost badge-sm">Desktop Support Technician</span>
+                  <button
+                    class="btn btn-primary btn-xs sm:btn-sm gap-2"
+                    (click)="toggleDetalles(candidato.id)">
+                    @if (isExpanded(candidato.id)) {
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                      </svg>
+                      <span class="hidden sm:inline">Ocultar</span>
+                    } @else {
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                      </svg>
+                      <span class="hidden sm:inline">Ver Detalles</span>
+                    }
+                  </button>
                 </td>
-                <td>Purple</td>
-                <th>
-                <button class="btn btn-ghost btn-xs">details</button>
-                </th>
-            </tr>
-            <!-- row 2 -->
+              </tr>
+
+              <!-- Fila expandida con detalles -->
+              @if (isExpanded(candidato.id)) {
+                <tr>
+                  <td colspan="5" class="bg-base-200 p-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <!-- Información del candidato -->
+                      <div class="space-y-3">
+                        <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                          Información Personal
+                        </h3>
+                        
+                        <div class="grid grid-cols-2 gap-2">
+                          <div class="text-sm font-semibold opacity-70">Email:</div>
+                          <div class="text-sm break-all">{{ candidato.email }}</div>
+
+                          <div class="text-sm font-semibold opacity-70">Teléfono:</div>
+                          <div class="text-sm">{{ candidato.telefono }}</div>
+
+                          <div class="text-sm font-semibold opacity-70">Tipo Documento:</div>
+                          <div class="text-sm">{{ candidato.tipoDocumento }}</div>
+
+                          <div class="text-sm font-semibold opacity-70">Nº Documento:</div>
+                          <div class="text-sm">{{ candidato.numeroDocumento }}</div>
+
+                          <div class="text-sm font-semibold opacity-70">Género:</div>
+                          <div class="text-sm">{{ candidato.genero }}</div>
+
+                          <div class="text-sm font-semibold opacity-70">Nacimiento:</div>
+                          <div class="text-sm">{{ candidato.fechaNacimiento }}</div>
+
+                          <div class="text-sm font-semibold opacity-70">Lugar Nacimiento:</div>
+                          <div class="text-sm">{{ candidato.lugarNacimiento }}</div>
+
+                          <div class="text-sm font-semibold opacity-70">Dirección:</div>
+                          <div class="text-sm">{{ candidato.direccion }}</div>
+
+                          <div class="text-sm font-semibold opacity-70">Código Postal:</div>
+                          <div class="text-sm">{{ candidato.codigoPostal }}</div>
+
+                          <div class="text-sm font-semibold opacity-70">País:</div>
+                          <div class="text-sm">{{ candidato.pais }}</div>
+
+                          <div class="text-sm font-semibold opacity-70">Disponibilidad:</div>
+                          <div class="text-sm">
+                            {{ candidato.disponibilidadDesde }} - {{ candidato.disponibilidadHasta }}
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Documentos adjuntos -->
+                      <div class="space-y-3">
+                        <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          Documentos Adjuntos
+                          <span class="badge badge-primary badge-sm">{{ candidato.adjuntos.length }}</span>
+                        </h3>
+
+                        <!-- Lista de adjuntos -->
+                        @if (candidato.adjuntos.length > 0) {
+                          <div class="space-y-2">
+                            @for (adjunto of candidato.adjuntos; track adjunto.id) {
+                              <div class="flex items-center gap-3 p-3 bg-base-100 rounded-lg hover:bg-base-300 transition-colors">
+                                <span class="text-2xl">{{ getFileIcon(adjunto.extension) }}</span>
+                                <div class="flex-1 min-w-0">
+                                  <div class="text-sm font-medium truncate">
+                                    {{ adjunto.nombreArchivo }}
+                                  </div>
+                                  <div class="text-xs opacity-60">
+                                    {{ adjunto.extension.toUpperCase() }}
+                                  </div>
+                                </div>
+                                <button class="btn btn-ghost btn-xs">
+                                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                  </svg>
+                                </button>
+                              </div>
+                            }
+                          </div>
+                        } @else {
+                          <div class="text-center py-8 text-sm opacity-60">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-2 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                            No hay documentos adjuntos
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+          <!-- foot -->
+          <tfoot class="bg-primary text-primary-content">
             <tr>
-                <th>
-                <label>
-                    <input type="checkbox" class="checkbox" />
-                </label>
-                </th>
-                <td>
-                <div class="flex items-center gap-3">
-                    <div class="avatar">
-                    <div class="mask mask-squircle h-12 w-12">
-                        <img
-                        src="https://img.daisyui.com/images/profile/demo/3@94.webp"
-                        alt="Avatar Tailwind CSS Component" />
-                    </div>
-                    </div>
-                    <div>
-                    <div class="font-bold">Brice Swyre</div>
-                    <div class="text-sm opacity-50">China</div>
-                    </div>
-                </div>
-                </td>
-                <td>
-                Carroll Group
-                <br />
-                <span class="badge badge-ghost badge-sm">Tax Accountant</span>
-                </td>
-                <td>Red</td>
-                <th>
-                <button class="btn btn-ghost btn-xs">details</button>
-                </th>
+              <th>Nombre</th>
+              <th class="hidden md:table-cell">Email</th>
+              <th class="hidden md:table-cell">Teléfono</th>
+              <th class="hidden md:table-cell">Tipo de Documento</th>
+              <th>Acciones</th>
             </tr>
-            <!-- row 3 -->
-            <tr>
-                <th>
-                <label>
-                    <input type="checkbox" class="checkbox" />
-                </label>
-                </th>
-                <td>
-                <div class="flex items-center gap-3">
-                    <div class="avatar">
-                    <div class="mask mask-squircle h-12 w-12">
-                        <img
-                        src="https://img.daisyui.com/images/profile/demo/4@94.webp"
-                        alt="Avatar Tailwind CSS Component" />
-                    </div>
-                    </div>
-                    <div>
-                    <div class="font-bold">Marjy Ferencz</div>
-                    <div class="text-sm opacity-50">Russia</div>
-                    </div>
-                </div>
-                </td>
-                <td>
-                Rowe-Schoen
-                <br />
-                <span class="badge badge-ghost badge-sm">Office Assistant I</span>
-                </td>
-                <td>Crimson</td>
-                <th>
-                <button class="btn btn-ghost btn-xs">details</button>
-                </th>
-            </tr>
-            <!-- row 4 -->
-            <tr>
-                <th>
-                <label>
-                    <input type="checkbox" class="checkbox" />
-                </label>
-                </th>
-                <td>
-                <div class="flex items-center gap-3">
-                    <div class="avatar">
-                    <div class="mask mask-squircle h-12 w-12">
-                        <img
-                        src="https://img.daisyui.com/images/profile/demo/5@94.webp"
-                        alt="Avatar Tailwind CSS Component" />
-                    </div>
-                    </div>
-                    <div>
-                    <div class="font-bold">Yancy Tear</div>
-                    <div class="text-sm opacity-50">Brazil</div>
-                    </div>
-                </div>
-                </td>
-                <td>
-                Wyman-Ledner
-                <br />
-                <span class="badge badge-ghost badge-sm">Community Outreach Specialist</span>
-                </td>
-                <td>Indigo</td>
-                <th>
-                <button class="btn btn-ghost btn-xs">details</button>
-                </th>
-            </tr>
-            </tbody>
-            <!-- foot -->
-            <tfoot>
-            <tr>
-                <th></th>
-                <th>Name</th>
-                <th>Job</th>
-                <th>Favorite Color</th>
-                <th></th>
-            </tr>
-            </tfoot>
+          </tfoot>
         </table>
-    </div>
+      </div>
+    }
+  </div>
 </div>
