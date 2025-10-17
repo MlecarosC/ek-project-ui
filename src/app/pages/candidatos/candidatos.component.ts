@@ -1,47 +1,51 @@
 import { Component, signal, computed, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map, catchError, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { AdjuntoService } from '../../core/services/adjunto.service';
-import { CandidatoView } from '../../shared/models/candidato-view.model';
-
-const AVATAR_CACHE_KEY = 'candidatos-avatars';
-const CURRENT_PAGE_KEY = 'candidatos-current-page';
-
-const AVATAR_IMAGES = [
-  'https://img.daisyui.com/images/profile/demo/2@94.webp',
-  'https://img.daisyui.com/images/profile/demo/3@94.webp',
-  'https://img.daisyui.com/images/profile/demo/4@94.webp',
-  'https://img.daisyui.com/images/profile/demo/5@94.webp'
-] as const;
+import { StorageService } from '../../core/services/storage.service';
+import { AvatarService } from '../../core/services/avatar.service';
+import { STORAGE_KEYS } from '../../shared/constants/storage-keys';
+import { getFileIcon } from '../../shared/constants/file-icons';
+import { debounceSignal } from '../../shared/utils/debounce-signal';
 
 @Component({
   selector: 'app-candidatos',
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './candidatos.component.html',
 })
 export class CandidatosComponent {
   Math = Math;
-  
+
   private adjuntoService = inject(AdjuntoService);
+  private storageService = inject(StorageService);
+  private avatarService = inject(AvatarService);
+  
   private errorSignal = signal<string>('');
+  private expandedRowsSignal = signal<Set<number>>(new Set());
+  private currentPageSignal = signal(this.loadSavedPage());
+  
+  searchTermInput = signal<string>('');
+  
+  readonly searchTerm = debounceSignal(this.searchTermInput, 300);
 
   private candidatosData = toSignal(
     this.adjuntoService.getAllCandidatosConAdjuntos().pipe(
       map(data => {
         this.errorSignal.set('');
-        const savedAvatars = this.getSavedAvatars();
+        const savedAvatars = this.avatarService.getAvatarMap();
         
         const candidatos = data.map(({ candidato, adjuntos }) => ({
           ...candidato,
-          avatarUrl: this.getOrAssignAvatar(candidato.id, savedAvatars),
+          avatarUrl: this.avatarService.getOrAssignAvatar(candidato.id, savedAvatars),
           adjuntos
         }));
         
         return candidatos;
       }),
-      tap(candidatos => this.saveAvatars(candidatos)),
+      tap(candidatos => this.avatarService.saveAvatars(candidatos)),
       catchError(error => {
         console.error('Error al cargar los candidatos:', error);
         this.errorSignal.set('Error al cargar los candidatos. Por favor, intenta nuevamente.');
@@ -50,25 +54,44 @@ export class CandidatosComponent {
     )
   );
 
-  expandedRows = signal<Set<number>>(new Set());
-  currentPage = signal(this.loadSavedPage());
-  itemsPerPage = 5;
+  readonly expandedRows = this.expandedRowsSignal.asReadonly();
+  readonly currentPage = this.currentPageSignal.asReadonly();
+  readonly itemsPerPage = 5;
 
-  candidatos = computed(() => this.candidatosData() ?? []);
-  loading = computed(() => this.candidatosData() === undefined);
-  error = computed(() => this.errorSignal());
+  readonly candidatos = computed(() => this.candidatosData() ?? []);
+  readonly loading = computed(() => this.candidatosData() === undefined);
+  readonly error = computed(() => this.errorSignal());
 
-  paginatedCandidatos = computed(() => {
-    const startIndex = (this.currentPage() - 1) * this.itemsPerPage;
-    const endIndex = startIndex + this.itemsPerPage;
-    return this.candidatos().slice(startIndex, endIndex);
+  readonly filteredCandidatos = computed(() => {
+    const term = this.searchTerm().toLowerCase().trim();
+    const allCandidatos = this.candidatos();
+    
+    if (!term) {
+      return allCandidatos;
+    }
+    
+    return allCandidatos.filter(candidato => {
+      const nombreCompleto = `${candidato.nombre} ${candidato.apellidos}`.toLowerCase();
+      const email = candidato.email.toLowerCase();
+      const pais = candidato.pais.toLowerCase();
+      
+      return nombreCompleto.includes(term) || 
+             email.includes(term) || 
+             pais.includes(term);
+    });
   });
 
-  totalPages = computed(() => 
-    Math.ceil(this.candidatos().length / this.itemsPerPage)
+  readonly paginatedCandidatos = computed(() => {
+    const startIndex = (this.currentPage() - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    return this.filteredCandidatos().slice(startIndex, endIndex);
+  });
+
+  readonly totalPages = computed(() => 
+    Math.ceil(this.filteredCandidatos().length / this.itemsPerPage)
   );
 
-  pageNumbers = computed(() => {
+  readonly pageNumbers = computed(() => {
     const pages: number[] = [];
     const maxPagesToShow = 5;
     const total = this.totalPages();
@@ -96,30 +119,28 @@ export class CandidatosComponent {
     return pages;
   });
 
-  private readonly fileIconMap = {
-    'pdf': '📄',
-    'doc': '📝',
-    'docx': '📝',
-    'xls': '📊',
-    'xlsx': '📊',
-    'jpg': '🖼️',
-    'jpeg': '🖼️',
-    'png': '🖼️',
-    'gif': '🖼️'
-  } as const;
+  readonly getFileIcon = getFileIcon;
 
   constructor() {
     effect(() => {
-      const page = this.currentPage();
-      localStorage.setItem(CURRENT_PAGE_KEY, page.toString());
+      this.storageService.set(STORAGE_KEYS.CURRENT_PAGE, this.currentPage());
     });
+
+    effect(() => {
+      this.searchTerm();
+      this.currentPageSignal.set(1);
+    });
+  }
+
+  clearSearch(): void {
+    this.searchTermInput.set('');
   }
 
   goToPage(page: number): void {
     const total = this.totalPages();
     if (page >= 1 && page <= total) {
-      this.currentPage.set(page);
-      this.expandedRows.set(new Set());
+      this.currentPageSignal.set(page);
+      this.expandedRowsSignal.set(new Set());
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
@@ -145,7 +166,7 @@ export class CandidatosComponent {
   }
 
   toggleDetalles(candidatoId: number): void {
-    this.expandedRows.update(current => {
+    this.expandedRowsSignal.update(current => {
       const newSet = new Set(current);
       if (newSet.has(candidatoId)) {
         newSet.delete(candidatoId);
@@ -160,51 +181,8 @@ export class CandidatosComponent {
     return this.expandedRows().has(candidatoId);
   }
 
-  getFileIcon(extension: string): string {
-    return this.fileIconMap[extension.toLowerCase() as keyof typeof this.fileIconMap] || '📎';
-  }
-
   private loadSavedPage(): number {
-    const savedPage = localStorage.getItem(CURRENT_PAGE_KEY);
-    if (savedPage) {
-      const pageNumber = parseInt(savedPage, 10);
-      if (pageNumber >= 1) {
-        return pageNumber;
-      }
-    }
-    return 1;
-  }
-
-  private getSavedAvatars(): Map<number, string> {
-    const saved = localStorage.getItem(AVATAR_CACHE_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        return new Map(Object.entries(parsed).map(([k, v]) => [Number(k), v as string]));
-      } catch (error) {
-        console.error('Error al parsear avatares guardados:', error);
-      }
-    }
-    return new Map();
-  }
-
-  private getOrAssignAvatar(candidatoId: number, savedAvatars: Map<number, string>): string {
-    if (savedAvatars.has(candidatoId)) {
-      return savedAvatars.get(candidatoId)!;
-    }
-    return this.getRandomAvatar();
-  }
-
-  private getRandomAvatar(): string {
-    return AVATAR_IMAGES[Math.floor(Math.random() * AVATAR_IMAGES.length)];
-  }
-
-  private saveAvatars(candidatos: CandidatoView[]): void {
-    const avatarMap = candidatos.reduce((acc, { id, avatarUrl }) => {
-      acc[id] = avatarUrl;
-      return acc;
-    }, {} as { [key: number]: string });
-    
-    localStorage.setItem(AVATAR_CACHE_KEY, JSON.stringify(avatarMap));
+    const savedPage = this.storageService.get<number>(STORAGE_KEYS.CURRENT_PAGE);
+    return savedPage && savedPage >= 1 ? savedPage : 1;
   }
 }
