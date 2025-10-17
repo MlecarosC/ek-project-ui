@@ -88,7 +88,7 @@ ek-project-ui/
 │   │   │   │   ├── inicio.component.ts
 │   │   │   │   └── inicio.component.html
 │   │   │   │
-│   │   │   ├── candidatos/            # Vista principal
+│   │   │   ├── candidatos/
 │   │   │   │   ├── candidatos.component.ts
 │   │   │   │   └── candidatos.component.html
 │   │   │   │
@@ -117,11 +117,11 @@ ek-project-ui/
 │   │   ├── app.ts                     # Componente raíz
 │   │   ├── app.html                   # Template raíz
 │   │   ├── app.config.ts              # Configuración app
-│   │   └── app.routes.ts              # Configuración rutas (lazy loading)
+│   │   └── app.routes.ts              # Configuración rutas
 │   │
-│   ├── environments/                   # Variables de entorno
-│   │   ├── environment.ts             # Producción
-│   │   └── environment.development.ts # Desarrollo
+│   ├── environments/                  # Variables de entorno
+│   │   ├── environment.ts              # Producción
+│   │   └── environment.development.ts  # Desarrollo
 │   │
 │   ├── styles.css                     # Estilos globales
 │   ├── main.ts                        # Punto de entrada
@@ -130,11 +130,14 @@ ek-project-ui/
 ├── public/                            # Assets estáticos
 │   └── images/
 │
-├── angular.json                       # Configuración Angular CLI
-├── package.json                       # Dependencias npm
-├── tsconfig.json                      # Configuración TypeScript
-├── tailwind.config.js                # Configuración Tailwind (generado)
-└── README.md                         # Este archivo
+├── angular.json
+├── package.json
+├── tsconfig.json
+├── .postcssrc.json
+├── tsconfig.app.json
+├── tsconfig.json
+├── tsconfig.spec.json
+└── README.md
 ```
 
 ## Requisitos Previos
