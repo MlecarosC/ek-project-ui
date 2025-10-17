@@ -259,4 +259,120 @@ describe('CandidatosComponent', () => {
       expect(component.getFileIcon('pdf')).toBe('📄');
     });
   });
+
+
+  describe('Edge cases and uncovered lines', () => {
+    it('should handle empty candidatos list', fakeAsync(() => {
+        mockAdjuntoService.getAllCandidatosConAdjuntos.mockReturnValue(of([]));
+        
+        const newFixture = TestBed.createComponent(CandidatosComponent);
+        const newComponent = newFixture.componentInstance;
+        newFixture.detectChanges();
+        tick();
+
+        expect(newComponent.candidatos().length).toBe(0);
+        expect(newComponent.totalPages()).toBe(0);
+    }));
+
+    it('should handle page navigation beyond boundaries', fakeAsync(() => {
+        tick();
+        const totalPages = component.totalPages();
+        
+        // Intentar ir más allá del máximo
+        component.goToPage(totalPages + 10);
+        expect(component.currentPage()).toBeLessThanOrEqual(totalPages);
+        
+        // Intentar ir a página negativa
+        component.goToPage(-5);
+        expect(component.currentPage()).toBeGreaterThanOrEqual(1);
+        
+        // Intentar ir a página 0
+        component.goToPage(0);
+        expect(component.currentPage()).toBeGreaterThanOrEqual(1);
+    }));
+
+    it('should maintain expanded rows state', () => {
+        component.toggleDetalles(1);
+        component.toggleDetalles(2);
+        component.toggleDetalles(3);
+
+        expect(component.expandedRows().size).toBe(3);
+        expect(component.isExpanded(1)).toBe(true);
+        expect(component.isExpanded(2)).toBe(true);
+        expect(component.isExpanded(3)).toBe(true);
+    });
+
+    it('should handle pagination with single page', fakeAsync(() => {
+        mockAdjuntoService.getAllCandidatosConAdjuntos.mockReturnValue(
+        of(mockCandidatosData.slice(0, 3))
+        );
+
+        const newFixture = TestBed.createComponent(CandidatosComponent);
+        const newComponent = newFixture.componentInstance;
+        newFixture.detectChanges();
+        tick();
+
+        expect(newComponent.totalPages()).toBe(1);
+        expect(newComponent.hasPreviousPage()).toBe(false);
+        expect(newComponent.hasNextPage()).toBe(false);
+    }));
+
+    it('should generate correct page numbers for many pages', fakeAsync(() => {
+        const manyCandidatos = Array.from({ length: 50 }, (_, i) => ({
+        candidato: {
+            ...mockCandidatosData[0].candidato,
+            id: i + 1,
+            nombre: `Candidato${i + 1}`,
+        },
+        adjuntos: [],
+        }));
+
+        mockAdjuntoService.getAllCandidatosConAdjuntos.mockReturnValue(
+        of(manyCandidatos)
+        );
+
+        const newFixture = TestBed.createComponent(CandidatosComponent);
+        const newComponent = newFixture.componentInstance;
+        newFixture.detectChanges();
+        tick();
+
+        expect(newComponent.totalPages()).toBe(10);
+        expect(newComponent.pageNumbers().length).toBeLessThanOrEqual(5);
+    }));
+
+    it('should scroll to top when changing pages', fakeAsync(() => {
+        const scrollSpy = jest.spyOn(window, 'scrollTo');
+        tick();
+
+        component.nextPage();
+
+        expect(scrollSpy).toHaveBeenCalledWith({
+        top: 0,
+        behavior: 'smooth',
+        });
+
+        scrollSpy.mockRestore();
+    }));
+
+    it('should filter by partial matches', fakeAsync(() => {
+        tick();
+        
+        component.searchTermInput.set('ma');
+        tick(300);
+
+        const filtered = component.filteredCandidatos();
+        expect(filtered.some(c => c.nombre.toLowerCase().includes('ma') || 
+                                c.email.toLowerCase().includes('ma'))).toBe(true);
+    }));
+
+    it('should handle search with special characters', fakeAsync(() => {
+        tick();
+        
+        component.searchTermInput.set('@test.com');
+        tick(300);
+
+        const filtered = component.filteredCandidatos();
+        expect(filtered.every(c => c.email.includes('@test.com'))).toBe(true);
+    }));
+  });
 });

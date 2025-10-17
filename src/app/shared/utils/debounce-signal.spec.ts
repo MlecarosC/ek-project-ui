@@ -27,16 +27,10 @@ describe('debounceSignal', () => {
       const source = signal('initial');
       const debounced = debounceSignal(source, 300);
 
-      // Cambiar valor
       source.set('changed');
-
-      // Valor aún no debe cambiar
       expect(debounced()).toBe('initial');
 
-      // Avanzar tiempo
       jest.advanceTimersByTime(300);
-
-      // Ahora sí debe cambiar
       expect(debounced()).toBe('changed');
     });
   });
@@ -58,7 +52,6 @@ describe('debounceSignal', () => {
       expect(debounced()).toBe(0);
 
       jest.advanceTimersByTime(200);
-
       expect(debounced()).toBe(3);
     });
   });
@@ -90,7 +83,6 @@ describe('debounceSignal', () => {
       expect(debounced()).toBe(1);
 
       jest.advanceTimersByTime(250);
-
       expect(debounced()).toBe(4);
     });
   });
@@ -115,6 +107,39 @@ describe('debounceSignal', () => {
       const debounced = debounceSignal(source, 100);
 
       expect((debounced as any).set).toBeUndefined();
+    });
+  });
+
+  it('should clear previous timeout when source changes', () => {
+    TestBed.runInInjectionContext(() => {
+      const source = signal('first');
+      const debounced = debounceSignal(source, 300);
+
+      source.set('second');
+      jest.advanceTimersByTime(150);
+      
+      // Change before timeout completes
+      source.set('third');
+      jest.advanceTimersByTime(150);
+      
+      // Still should be initial value
+      expect(debounced()).toBe('first');
+      
+      // Complete the timeout
+      jest.advanceTimersByTime(150);
+      expect(debounced()).toBe('third');
+    });
+  });
+
+  it('should handle default delay parameter', () => {
+    TestBed.runInInjectionContext(() => {
+      const source = signal('test');
+      const debounced = debounceSignal(source); // Sin especificar delay
+
+      source.set('updated');
+      jest.advanceTimersByTime(250); // Default delay
+      
+      expect(debounced()).toBe('updated');
     });
   });
 });
