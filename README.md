@@ -21,7 +21,7 @@ Este proyecto implementa una interfaz de usuario completa que se conecta con la 
 ## Tecnologías Utilizadas
 
 ### Stack Principal
-- **Angular 20.3.0** - Framework principal
+- **Angular 20.3.6** - Framework principal
 - **TypeScript 5.9.2** - Lenguaje de programación
 - **RxJS 7.8.0** - Programación reactiva
 - **Tailwind CSS 4.1.14** - Framework de CSS utility-first
@@ -30,6 +30,8 @@ Este proyecto implementa una interfaz de usuario completa que se conecta con la 
 
 ### Herramientas de Desarrollo
 - **Angular CLI 20.3.5**
+- **Jest 29**
+- **@angular-builders/jest**
 
 ## Arquitectura del Sistema
 
@@ -398,6 +400,17 @@ export interface CandidatoView extends Candidato {
   avatarUrl: string;      // URL del avatar (generado en frontend)
   adjuntos: Adjunto[];    // Lista de documentos adjuntos
 }
+```
+
+## Pruebas Unitarias con Jest
+El proyecto está completamente integrado con Jest para realizar pruebas unitarias. Jest se utiliza en lugar de Karma y Jasmine, mejorando la velocidad y la fiabilidad de las pruebas. Se han implementado pruebas unitarias para los componentes y servicios principales.
+
+**Ejecutar las Pruebas**
+Para ejecutar las pruebas unitarias con Jest, utiliza los siguientes comandos:
+```
+npm test
+
+npm test:coverage (para ejecutar tests con resumen coverage)
 ```
 
 ## Troubleshooting
