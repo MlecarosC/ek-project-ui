@@ -77,8 +77,6 @@ ek-project-ui/
 ├── src/
 │   ├── app/
 │   │   ├── core/                      # Funcionalidad central
-│   │   │   ├── interceptors/          # HTTP Interceptors
-│   │   │   │   └── http-error.interceptor.ts
 │   │   │   │
 │   │   │   └── services/              # Servicios de negocio
 │   │   │       ├── adjunto.service.ts # Servicio API
