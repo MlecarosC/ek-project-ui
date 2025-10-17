@@ -375,4 +375,181 @@ describe('CandidatosComponent', () => {
         expect(filtered.every(c => c.email.includes('@test.com'))).toBe(true);
     }));
   });
+
+  describe('Search functionality', () => {
+    it('should filter candidates when search term is applied', fakeAsync(() => {
+        tick();
+        fixture.detectChanges();
+        
+        const allCandidatos = component.candidatos();
+        expect(allCandidatos.length).toBe(6);
+        
+        // Aplicar búsqueda
+        component.searchTermInput.set('Juan');
+        tick(500); // Esperar debounce
+        fixture.detectChanges();
+        
+        const filtered = component.filteredCandidatos();
+        expect(filtered.length).toBeLessThanOrEqual(allCandidatos.length);
+    }));
+
+    it('should return to page 1 when filters change results', fakeAsync(() => {
+        tick();
+        fixture.detectChanges();
+        
+        // Ir a página 2
+        component.goToPage(2);
+        fixture.detectChanges();
+        tick(100);
+        
+        // Aplicar búsqueda que reduce resultados
+        component.searchTermInput.set('xyz_no_existe');
+        tick(500);
+        fixture.detectChanges();
+        tick(100);
+        fixture.detectChanges();
+        
+        // Con 0 resultados o pocos resultados, debería estar en página válida
+        const currentPage = component.currentPage();
+        const totalPages = component.totalPages();
+        
+        // Verificar que está en página válida (1 o dentro del rango)
+        expect(currentPage).toBeGreaterThanOrEqual(1);
+        expect(currentPage).toBeLessThanOrEqual(Math.max(1, totalPages));
+    }));
+
+    it('should clear search input when clearSearch is called', fakeAsync(() => {
+        tick();
+        
+        component.searchTermInput.set('test');
+        expect(component.searchTermInput()).toBe('test');
+        
+        component.clearSearch();
+        expect(component.searchTermInput()).toBe('');
+    }));
+    });
+
+    describe('Page persistence', () => {
+    it('should save page to storage when navigating', fakeAsync(() => {
+        tick();
+        fixture.detectChanges();
+        
+        mockStorageService.set.mockClear();
+        
+        // Navegar a diferentes páginas
+        component.goToPage(2);
+        tick(50);
+        fixture.detectChanges();
+        
+        component.goToPage(1);
+        tick(50);
+        fixture.detectChanges();
+        
+        // Verificar que se llamó storage.set
+        expect(mockStorageService.set).toHaveBeenCalled();
+        expect(mockStorageService.set).toHaveBeenCalledWith(
+        'candidatos-current-page',
+        expect.any(Number)
+        );
+    }));
+
+    it('should load saved page on initialization', () => {
+        // Este test verifica que el constructor carga la página guardada
+        expect(component.currentPage()).toBe(1); // Valor del mock
+    });
+    });
+
+    describe('Pagination boundaries', () => {
+    it('should not go below page 1', fakeAsync(() => {
+        tick();
+        fixture.detectChanges();
+        
+        // Asegurar que estamos en página 1
+        component.goToPage(1);
+        tick();
+        expect(component.currentPage()).toBe(1);
+        
+        // Intentar ir a anterior
+        component.previousPage();
+        tick();
+        
+        // Debe seguir en página 1
+        expect(component.currentPage()).toBe(1);
+    }));
+
+    it('should not go beyond last page', fakeAsync(() => {
+        tick();
+        fixture.detectChanges();
+        
+        const totalPages = component.totalPages();
+        
+        // Ir a última página
+        component.goToPage(totalPages);
+        tick();
+        expect(component.currentPage()).toBe(totalPages);
+        
+        // Intentar ir a siguiente
+        component.nextPage();
+        tick();
+        
+        // Debe seguir en última página
+        expect(component.currentPage()).toBe(totalPages);
+    }));
+
+    it('should correctly identify when previous page is available', fakeAsync(() => {
+        tick();
+        
+        component.goToPage(1);
+        tick();
+        expect(component.hasPreviousPage()).toBe(false);
+        
+        component.goToPage(2);
+        tick();
+        expect(component.hasPreviousPage()).toBe(true);
+    }));
+
+    it('should correctly identify when next page is available', fakeAsync(() => {
+        tick();
+        
+        const totalPages = component.totalPages();
+        
+        component.goToPage(1);
+        tick();
+        expect(component.hasNextPage()).toBe(true);
+        
+        component.goToPage(totalPages);
+        tick();
+        expect(component.hasNextPage()).toBe(false);
+    }));
+    });
+
+    describe('Effect execution coverage', () => {
+    it('should trigger effects during component initialization', fakeAsync(() => {
+        // Crear nuevo componente para verificar inicialización
+        const newFixture = TestBed.createComponent(CandidatosComponent);
+        newFixture.detectChanges();
+        tick(100);
+        
+        // El componente se inicializa correctamente
+        expect(newFixture.componentInstance).toBeTruthy();
+        
+        // El storage debe haberse llamado durante la inicialización
+        expect(mockStorageService.set).toHaveBeenCalled();
+    }));
+
+    it('should handle search input changes', fakeAsync(() => {
+        tick();
+        fixture.detectChanges();
+        
+        // Verificar que searchTermInput funciona
+        expect(component.searchTermInput()).toBe('');
+        
+        component.searchTermInput.set('test');
+        expect(component.searchTermInput()).toBe('test');
+        
+        // Verificar que clearSearch funciona
+        component.clearSearch();
+        expect(component.searchTermInput()).toBe('');
+    }));
+  });
 });

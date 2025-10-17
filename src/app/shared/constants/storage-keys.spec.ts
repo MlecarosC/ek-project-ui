@@ -91,9 +91,7 @@ describe('storage-keys', () => {
     it('should have readonly tuple type for AVATAR_IMAGES', () => {
       // Verificar que es un array con exactamente 4 elementos
       expect(AVATAR_IMAGES.length).toBe(4);
-      
-      // Intentar modificar no debería compilar en TypeScript
-      // pero en runtime JavaScript lo permite (por eso no testeamos eso)
+
       const copy = [...AVATAR_IMAGES];
       expect(copy).toEqual(AVATAR_IMAGES);
     });
