@@ -81,32 +81,41 @@ ek-project-ui/
 │   │   ├── core/                      # Funcionalidad central
 │   │   │   │
 │   │   │   └── services/              # Servicios de negocio
-│   │   │       ├── adjunto.service.ts # Servicio API
-│   │   │       ├── avatar.service.ts  # Gestión de avatares
-│   │   │       └── storage.service.ts # Abstracción localStorage
+│   │   │       ├── adjunto.service.ts
+│   │   │       ├── adjunto.service.spec.ts
+│   │   │       ├── avatar.service.ts
+│   │   │       ├── avatar.service.spec.ts
+│   │   │       └── storage.service.ts
+│   │   │       └── storage.service.spec.ts
 │   │   │
 │   │   ├── pages/                     # Páginas/Vistas
 │   │   │   ├── inicio/
 │   │   │   │   ├── inicio.component.ts
+│   │   │   │   ├── inicio.component.spec.ts
 │   │   │   │   └── inicio.component.html
 │   │   │   │
 │   │   │   ├── candidatos/
 │   │   │   │   ├── candidatos.component.ts
+│   │   │   │   ├── candidatos.component.spec.ts
 │   │   │   │   └── candidatos.component.html
 │   │   │   │
 │   │   │   └── nosotros/
 │   │   │       ├── nosotros.component.ts
+│   │   │       ├── nosotros.component.spec.ts
 │   │   │       └── nosotros.component.html
 │   │   │
 │   │   ├── shared/                    # Recursos compartidos
 │   │   │   ├── components/
 │   │   │   │   └── navbar/
 │   │   │   │       ├── navbar.component.ts
+│   │   │   │       ├── navbar.component.spec.ts
 │   │   │   │       └── navbar.component.html
 │   │   │   │
 │   │   │   ├── constants/             # Constantes de aplicación
-│   │   │   │   ├── file-icons.ts      # Iconos por tipo de archivo
-│   │   │   │   └── storage-keys.ts    # Keys de localStorage
+│   │   │   │   ├── file-icons.ts
+│   │   │   │   ├── file-icons.spec.ts
+│   │   │   │   └── storage-keys.ts
+│   │   │   │   └── storage-keys.spec.ts
 │   │   │   │
 │   │   │   ├── models/                # Interfaces TypeScript
 │   │   │   │   ├── candidato.model.ts
@@ -114,20 +123,24 @@ ek-project-ui/
 │   │   │   │   └── adjunto.model.ts
 │   │   │   │
 │   │   │   └── utils/                 # Utilidades
-│   │   │       └── debounce-signal.ts # Debounce para signals
+│   │   │       └── debounce-signal.ts 
+│   │   │       └── debounce-signal.spec.ts
 │   │   │
 │   │   ├── app.ts                     # Componente raíz
 │   │   ├── app.html                   # Template raíz
 │   │   ├── app.config.ts              # Configuración app
+│   │   ├── app.config.spec.ts
 │   │   └── app.routes.ts              # Configuración rutas
+│   │   └── app.routes.spec.ts
 │   │
 │   ├── environments/                  # Variables de entorno
-│   │   ├── environment.ts              # Producción
-│   │   └── environment.development.ts  # Desarrollo
+│   │   ├── environment.ts
+│   │   └── environment.development.ts
 │   │
 │   ├── styles.css                     # Estilos globales
 │   ├── main.ts                        # Punto de entrada
 │   └── index.html                     # HTML principal
+│   └── test.ts
 │
 ├── public/                            # Assets estáticos
 │   └── images/
@@ -139,6 +152,8 @@ ek-project-ui/
 ├── tsconfig.app.json
 ├── tsconfig.json
 ├── tsconfig.spec.json
+├── setup-jest.ts
+├── jest.config.js
 └── README.md
 ```
 
@@ -335,23 +350,6 @@ CORS_ALLOWED_ORIGINS=http://localhost:4200
 
 <!-- Badges -->
 <span class="badge badge-primary">New</span>
-```
-
-## Despliegue
-
-### Build Estático
-
-```bash
-# 1. Build de producción
-npm run build
-
-# 2. Los archivos estarán en dist/ek-project-ui/browser/
-# 3. Servir con cualquier servidor web:
-#    - Nginx
-#    - Apache
-#    - AWS S3 + CloudFront
-#    - Vercel
-#    - Netlify
 ```
 
 ## Estructura de Datos
