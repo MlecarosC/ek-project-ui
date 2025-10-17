@@ -14,7 +14,7 @@ export function debounceSignal<T>(
     if (timeoutId) {
       clearTimeout(timeoutId);
     }
-    
+
     timeoutId = window.setTimeout(() => {
       debouncedSignal.set(value);
     }, delay);

@@ -72,14 +72,18 @@ Este proyecto implementa una interfaz de usuario completa que se conecta con la 
 ```
 
 ## Estructura del Proyecto
-
 ```
 ek-project-ui/
 ├── src/
 │   ├── app/
 │   │   ├── core/                      # Funcionalidad central
-│   │   │   └── services/
-│   │   │       └── adjunto.service.ts # Servicio API
+│   │   │   ├── interceptors/          # HTTP Interceptors
+│   │   │   │   └── http-error.interceptor.ts
+│   │   │   │
+│   │   │   └── services/              # Servicios de negocio
+│   │   │       ├── adjunto.service.ts # Servicio API
+│   │   │       ├── avatar.service.ts  # Gestión de avatares
+│   │   │       └── storage.service.ts # Abstracción localStorage
 │   │   │
 │   │   ├── pages/                     # Páginas/Vistas
 │   │   │   ├── inicio/
@@ -94,38 +98,45 @@ ek-project-ui/
 │   │   │       ├── nosotros.component.ts
 │   │   │       └── nosotros.component.html
 │   │   │
-│   │   ├── shared/                    # Componentes compartidos
+│   │   ├── shared/                    # Recursos compartidos
 │   │   │   ├── components/
 │   │   │   │   └── navbar/
 │   │   │   │       ├── navbar.component.ts
 │   │   │   │       └── navbar.component.html
 │   │   │   │
-│   │   │   └── models/               # Interfaces TypeScript
-│   │   │       ├── candidato.model.ts
-│   │   │       ├── candidato-view.model.ts
-│   │   │       └── adjunto.model.ts
+│   │   │   ├── constants/             # Constantes de aplicación
+│   │   │   │   ├── file-icons.ts      # Iconos por tipo de archivo
+│   │   │   │   └── storage-keys.ts    # Keys de localStorage
+│   │   │   │
+│   │   │   ├── models/                # Interfaces TypeScript
+│   │   │   │   ├── candidato.model.ts
+│   │   │   │   ├── candidato-view.model.ts
+│   │   │   │   └── adjunto.model.ts
+│   │   │   │
+│   │   │   └── utils/                 # Utilidades
+│   │   │       └── debounce-signal.ts # Debounce para signals
 │   │   │
-│   │   ├── app.ts                    # Componente raíz
-│   │   ├── app.html                  # Template raíz
-│   │   ├── app.config.ts             # Configuración app
-│   │   └── app.routes.ts             # Configuración rutas
+│   │   ├── app.ts                     # Componente raíz
+│   │   ├── app.html                   # Template raíz
+│   │   ├── app.config.ts              # Configuración app
+│   │   └── app.routes.ts              # Configuración rutas (lazy loading)
 │   │
-│   ├── environments/                  # Variables de entorno
-│   │   ├── environment.ts            # Producción
+│   ├── environments/                   # Variables de entorno
+│   │   ├── environment.ts             # Producción
 │   │   └── environment.development.ts # Desarrollo
 │   │
-│   ├── styles.css                    # Estilos globales
-│   ├── main.ts                       # Punto de entrada
-│   └── index.html                    # HTML principal
+│   ├── styles.css                     # Estilos globales
+│   ├── main.ts                        # Punto de entrada
+│   └── index.html                     # HTML principal
 │
-├── public/                           # Assets estáticos
+├── public/                            # Assets estáticos
 │   └── images/
 │
-├── angular.json                      # Configuración Angular CLI
-├── package.json                      # Dependencias npm
-├── tsconfig.json                     # Configuración TypeScript
-├── tailwind.config.js               # Configuración Tailwind (generado)
-└── README.md                        # Este archivo
+├── angular.json                       # Configuración Angular CLI
+├── package.json                       # Dependencias npm
+├── tsconfig.json                      # Configuración TypeScript
+├── tailwind.config.js                # Configuración Tailwind (generado)
+└── README.md                         # Este archivo
 ```
 
 ## Requisitos Previos
