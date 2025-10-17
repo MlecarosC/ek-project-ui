@@ -1,12 +1,28 @@
 import { Routes } from '@angular/router';
-import { InicioComponent } from './pages/inicio/inicio.component';
-import { CandidatosComponent } from './pages/candidatos/candidatos.component';
-import { NosotrosComponent } from './pages/nosotros/nosotros.component';
 
 export const routes: Routes = [
-    { path: '', redirectTo: '/inicio', pathMatch: 'full' },
-    { path: 'inicio', component: InicioComponent },
-    { path: 'candidatos', component: CandidatosComponent },
-    { path: 'nosotros', component: NosotrosComponent },
-    { path: '**', redirectTo: '/inicio' }
+  { 
+    path: '', 
+    redirectTo: '/inicio', 
+    pathMatch: 'full' 
+  },
+  { 
+    path: 'inicio', 
+    loadComponent: () => import('./pages/inicio/inicio.component')
+      .then(m => m.InicioComponent)
+  },
+  { 
+    path: 'candidatos', 
+    loadComponent: () => import('./pages/candidatos/candidatos.component')
+      .then(m => m.CandidatosComponent)
+  },
+  { 
+    path: 'nosotros', 
+    loadComponent: () => import('./pages/nosotros/nosotros.component')
+      .then(m => m.NosotrosComponent)
+  },
+  { 
+    path: '**', 
+    redirectTo: '/inicio' 
+  }
 ];
