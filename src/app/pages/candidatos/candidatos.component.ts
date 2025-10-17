@@ -1,5 +1,6 @@
 import { Component, signal, computed, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map, catchError, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
@@ -8,10 +9,11 @@ import { StorageService } from '../../core/services/storage.service';
 import { AvatarService } from '../../core/services/avatar.service';
 import { STORAGE_KEYS } from '../../shared/constants/storage-keys';
 import { getFileIcon } from '../../shared/constants/file-icons';
+import { debounceSignal } from '../../shared/utils/debounce-signal';
 
 @Component({
   selector: 'app-candidatos',
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './candidatos.component.html',
 })
 export class CandidatosComponent {
@@ -24,6 +26,10 @@ export class CandidatosComponent {
   private errorSignal = signal<string>('');
   private expandedRowsSignal = signal<Set<number>>(new Set());
   private currentPageSignal = signal(this.loadSavedPage());
+  
+  searchTermInput = signal<string>('');
+  
+  readonly searchTerm = debounceSignal(this.searchTermInput, 300);
 
   private candidatosData = toSignal(
     this.adjuntoService.getAllCandidatosConAdjuntos().pipe(
@@ -56,14 +62,33 @@ export class CandidatosComponent {
   readonly loading = computed(() => this.candidatosData() === undefined);
   readonly error = computed(() => this.errorSignal());
 
+  readonly filteredCandidatos = computed(() => {
+    const term = this.searchTerm().toLowerCase().trim();
+    const allCandidatos = this.candidatos();
+    
+    if (!term) {
+      return allCandidatos;
+    }
+    
+    return allCandidatos.filter(candidato => {
+      const nombreCompleto = `${candidato.nombre} ${candidato.apellidos}`.toLowerCase();
+      const email = candidato.email.toLowerCase();
+      const pais = candidato.pais.toLowerCase();
+      
+      return nombreCompleto.includes(term) || 
+             email.includes(term) || 
+             pais.includes(term);
+    });
+  });
+
   readonly paginatedCandidatos = computed(() => {
     const startIndex = (this.currentPage() - 1) * this.itemsPerPage;
     const endIndex = startIndex + this.itemsPerPage;
-    return this.candidatos().slice(startIndex, endIndex);
+    return this.filteredCandidatos().slice(startIndex, endIndex);
   });
 
   readonly totalPages = computed(() => 
-    Math.ceil(this.candidatos().length / this.itemsPerPage)
+    Math.ceil(this.filteredCandidatos().length / this.itemsPerPage)
   );
 
   readonly pageNumbers = computed(() => {
@@ -100,6 +125,15 @@ export class CandidatosComponent {
     effect(() => {
       this.storageService.set(STORAGE_KEYS.CURRENT_PAGE, this.currentPage());
     });
+
+    effect(() => {
+      this.searchTerm();
+      this.currentPageSignal.set(1);
+    });
+  }
+
+  clearSearch(): void {
+    this.searchTermInput.set('');
   }
 
   goToPage(page: number): void {
