@@ -406,9 +406,9 @@ El proyecto está completamente integrado con Jest para realizar pruebas unitari
 **Ejecutar las Pruebas**
 Para ejecutar las pruebas unitarias con Jest, utiliza los siguientes comandos:
 ```
-npm test
+npm run test
 
-npm test:coverage (para ejecutar tests con resumen coverage)
+npm run test:coverage (para ejecutar tests con resumen coverage)
 ```
 
 ## Troubleshooting
