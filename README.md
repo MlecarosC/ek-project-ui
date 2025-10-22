@@ -251,7 +251,7 @@ cd ek-project-ui
 npm install
 
 # 3. Iniciar en modo desarrollo
-npm start
+ng serve
 
 # 4. Acceder a la aplicación
 # http://localhost:4200
