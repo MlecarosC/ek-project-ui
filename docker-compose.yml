@@ -1,0 +1,7 @@
+services:
+  frontend:
+    build: .
+    container_name: ek-project-ui
+    ports:
+      - "4200:80"
+    restart: always
