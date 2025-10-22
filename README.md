@@ -33,6 +33,11 @@ Este proyecto implementa una interfaz de usuario completa que se conecta con la 
 - **Jest 29**
 - **@angular-builders/jest**
 
+### Infraestructura
+- **Docker** - Contenedorización
+- **nginx** - Servidor web para producción
+- **Node.js 22+** - Entorno de ejecución
+
 ## Arquitectura del Sistema
 
 ```
@@ -154,36 +159,127 @@ ek-project-ui/
 ├── tsconfig.spec.json
 ├── setup-jest.ts
 ├── jest.config.js
+├── Dockerfile
+├── docker-compose.yml
+├── nginx.conf
+├── .dockerignore
 └── README.md
 ```
 
 ## Requisitos Previos
 
-- **Node.js** 18.x o superior
-- **npm** 9.x o superior
+### Para Desarrollo Local
+- **Node.js** 22.x o superior ([Descargar](https://nodejs.org/))
+- **npm** 10.x o superior
 - **Angular CLI** 20.x (se instalará automáticamente)
+
+### Para Docker (Recomendado)
+- **Docker** 20.10+ ([Descargar Docker Desktop](https://www.docker.com/products/docker-desktop))
+- **Docker Compose** 2.0+ (incluido en Docker Desktop)
+
+### Backend API
 - **API Backend** ejecutándose en `http://localhost:8090` (ver [backend README](https://github.com/MlecarosC/ek-project))
 
 ## Instalación y Configuración
 
-### 1. Clonar el Repositorio
+### Docker
 
+#### Docker Compose
 ```bash
+# 1. Clonar el repositorio
 git clone https://github.com/MlecarosC/ek-project-ui.git
 cd ek-project-ui
+
+# 2. Construir e iniciar
+docker-compose up -d
+
+# 3. Ver logs (opcional)
+docker-compose logs -f frontend
+
+# 4. Acceder a la aplicación
+# http://localhost:4200
 ```
 
-### 2. Instalar Dependencias
-
+**Comandos útiles:**
 ```bash
-npm install
+# Detener
+docker-compose down
+
+# Reconstruir
+docker-compose up -d --build
+
+# Ver estado
+docker-compose ps
 ```
 
-### 3. Configurar Variables de Entorno
+**Comandos de gestión:**
+```bash
+# Detener contenedor
+docker stop ek-project-ui
 
-El proyecto usa diferentes configuraciones para desarrollo y producción.
+# Iniciar contenedor
+docker start ek-project-ui
 
-**Desarrollo** (`src/environments/environment.development.ts`):
+# Eliminar contenedor
+docker rm -f ek-project-ui
+
+# Ver logs
+docker logs ek-project-ui
+```
+
+#### Configuración de Puerto Personalizado
+
+Si el puerto 4200 está ocupado:
+```bash
+# Docker Compose: editar docker-compose.yml
+services:
+  frontend:
+    ports:
+      - "8080:80"  # Cambiar 4200 por 8080
+
+# Docker Run:
+docker run -d --name ek-project-ui -p 8080:80 ek-project-ui:latest
+```
+
+### Desarrollo Local (Sin Docker)
+```bash
+# 1. Clonar el Repositorio
+git clone https://github.com/MlecarosC/ek-project-ui.git
+cd ek-project-ui
+
+# 2. Instalar Dependencias
+npm install
+
+# 3. Iniciar en modo desarrollo
+npm start
+
+# 4. Acceder a la aplicación
+# http://localhost:4200
+```
+
+## Configurar Variables de Entorno
+
+### Para Docker (Producción)
+
+Antes de construir la imagen Docker, edita `src/environments/environment.ts`:
+```typescript
+export const environment = {
+  production: true,
+  apiBaseUrl: 'http://localhost:8090/api/v1',  // Cambiar a tu dominio si es necesario.
+  apiTimeout: 30000,
+  enableDebugMode: false,
+} as const;
+```
+
+Luego reconstruye:
+```bash
+docker-compose build --no-cache frontend
+docker-compose up -d
+```
+
+### Para Desarrollo Local
+
+La configuración de desarrollo ya está lista en `src/environments/environment.development.ts`:
 ```typescript
 export const environment = {
   production: false,
@@ -192,36 +288,6 @@ export const environment = {
   enableDebugMode: true,
 } as const;
 ```
-
-**Producción** (`src/environments/environment.ts`):
-```typescript
-export const environment = {
-  production: true,
-  apiBaseUrl: 'https://api.tu-dominio.com/api/v1',  // ← Cambiar aquí
-  apiTimeout: 30000,
-  enableDebugMode: false,
-} as const;
-```
-
-### 4. Iniciar la Aplicación
-
-**Modo desarrollo:**
-```bash
-npm start
-# o
-ng serve
-```
-
-La aplicación estará disponible en: **http://localhost:4200**
-
-**Modo producción (build):**
-```bash
-npm run build
-# o
-ng build
-```
-
-Los archivos compilados estarán en `dist/ek-project-ui/`
 
 ## Funcionalidades Principales
 
