@@ -5,11 +5,13 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { map, catchError, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { AdjuntoService } from '../../core/services/adjunto.service';
+import { CandidatoService } from '../../core/services/candidato.service';
 import { StorageService } from '../../core/services/storage.service';
 import { AvatarService } from '../../core/services/avatar.service';
 import { STORAGE_KEYS } from '../../shared/constants/storage-keys';
 import { getFileIcon } from '../../shared/constants/file-icons';
 import { debounceSignal } from '../../shared/utils/debounce-signal';
+import { CandidatoView } from '../../shared/models/candidato-view.model';
 
 @Component({
   selector: 'app-candidatos',
@@ -20,6 +22,7 @@ export class CandidatosComponent {
   Math = Math;
 
   private adjuntoService = inject(AdjuntoService);
+  private candidatoService = inject(CandidatoService);
   private storageService = inject(StorageService);
   private avatarService = inject(AvatarService);
   
@@ -27,9 +30,21 @@ export class CandidatosComponent {
   private expandedRowsSignal = signal<Set<number>>(new Set());
   private currentPageSignal = signal(this.loadSavedPage());
   
+  // Signals para el modal de eliminación
+  private showDeleteModalSignal = signal(false);
+  private candidatoToDeleteSignal = signal<{ id: number; nombre: string } | null>(null);
+  private deletingSignal = signal(false);
+  
+  // Signals para toast de notificación
+  private showToastSignal = signal(false);
+  private toastMessageSignal = signal('');
+  private toastTypeSignal = signal<'success' | 'error'>('success');
+
   searchTermInput = signal<string>('');
   
   readonly searchTerm = debounceSignal(this.searchTermInput, 300);
+
+  private candidatosSignal = signal<CandidatoView[]>([]);
 
   private candidatosData = toSignal(
     this.adjuntoService.getAllCandidatosConAdjuntos().pipe(
@@ -43,6 +58,7 @@ export class CandidatosComponent {
           adjuntos
         }));
         
+        this.candidatosSignal.set(candidatos);
         return candidatos;
       }),
       tap(candidatos => this.avatarService.saveAvatars(candidatos)),
@@ -58,7 +74,14 @@ export class CandidatosComponent {
   readonly currentPage = this.currentPageSignal.asReadonly();
   readonly itemsPerPage = 5;
 
-  readonly candidatos = computed(() => this.candidatosData() ?? []);
+  readonly showDeleteModal = this.showDeleteModalSignal.asReadonly();
+  readonly candidatoToDelete = this.candidatoToDeleteSignal.asReadonly();
+  readonly deleting = this.deletingSignal.asReadonly();
+  readonly showToast = this.showToastSignal.asReadonly();
+  readonly toastMessage = this.toastMessageSignal.asReadonly();
+  readonly toastType = this.toastTypeSignal.asReadonly();
+
+  readonly candidatos = computed(() => this.candidatosSignal());
   readonly loading = computed(() => this.candidatosData() === undefined);
   readonly error = computed(() => this.errorSignal());
 
@@ -184,5 +207,62 @@ export class CandidatosComponent {
   private loadSavedPage(): number {
     const savedPage = this.storageService.get<number>(STORAGE_KEYS.CURRENT_PAGE);
     return savedPage && savedPage >= 1 ? savedPage : 1;
+  }
+
+  // Métodos para el modal de eliminación
+  openDeleteModal(id: number, nombre: string, apellidos: string): void {
+    this.candidatoToDeleteSignal.set({ 
+      id, 
+      nombre: `${nombre} ${apellidos}` 
+    });
+    this.showDeleteModalSignal.set(true);
+  }
+
+  closeDeleteModal(): void {
+    if (!this.deleting()) {
+      this.showDeleteModalSignal.set(false);
+      this.candidatoToDeleteSignal.set(null);
+    }
+  }
+
+  confirmDelete(): void {
+    const candidato = this.candidatoToDelete();
+    if (!candidato) return;
+
+    this.deletingSignal.set(true);
+
+    this.candidatoService.deleteCandidato(candidato.id).subscribe({
+      next: () => {
+        const updatedCandidatos = this.candidatosSignal().filter(c => c.id !== candidato.id);
+        this.candidatosSignal.set(updatedCandidatos);
+
+        this.showToastWithMessage('Candidato eliminado exitosamente', 'success');
+
+        this.deletingSignal.set(false);
+        this.closeDeleteModal();
+
+        if (this.paginatedCandidatos().length === 0 && this.currentPage() > 1) {
+          this.previousPage();
+        }
+      },
+      error: (error) => {
+        console.error('Error al eliminar candidato:', error);
+        this.showToastWithMessage(
+          'Error al eliminar el candidato. Por favor, intenta nuevamente.',
+          'error'
+        );
+        this.deletingSignal.set(false);
+      }
+    });
+  }
+
+  private showToastWithMessage(message: string, type: 'success' | 'error'): void {
+    this.toastMessageSignal.set(message);
+    this.toastTypeSignal.set(type);
+    this.showToastSignal.set(true);
+
+    setTimeout(() => {
+      this.showToastSignal.set(false);
+    }, 3000);
   }
 }
