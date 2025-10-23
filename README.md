@@ -86,8 +86,8 @@ ek-project-ui/
 │   │   ├── core/                      # Funcionalidad central
 │   │   │   │
 │   │   │   └── services/              # Servicios de negocio
-│   │   │       ├── adjunto.service.ts
-│   │   │       ├── adjunto.service.spec.ts
+│   │   │       ├── candidato.service.ts
+│   │   │       ├── candidato.service.spec.ts
 │   │   │       ├── avatar.service.ts
 │   │   │       ├── avatar.service.spec.ts
 │   │   │       └── storage.service.ts
@@ -325,11 +325,11 @@ export const environment = {
 
 ### Configuración del Servicio
 
-**AdjuntoService** (`src/app/core/services/adjunto.service.ts`):
+**CandidatoService** (`src/app/core/services/candidato.service.ts`):
 ```typescript
 @Injectable({ providedIn: 'root' })
-export class AdjuntoService {
-  private readonly apiUrl = `${environment.apiBaseUrl}/adjuntos`;
+export class CandidatoService {
+  private readonly apiUrl = `${environment.apiBaseUrl}/candidatos`;
   
   constructor(private http: HttpClient) { }
 
@@ -342,31 +342,29 @@ export class AdjuntoService {
 ### Endpoints Consumidos
 
 ```
-GET http://localhost:8090/api/v1/adjuntos
+GET http://localhost:8090/api/v1/candidatos
 ```
 
 **Response esperado:**
 ```json
 [
   {
-    "candidato": {
-      "id": 1,
-      "nombre": "Juan",
-      "apellidos": "Pérez",
-      "email": "juan.perez@example.com",
-      "telefono": "+56912345678",
-      "tipoDocumento": "RUT",
-      "numeroDocumento": "12.345.678-9",
-      "genero": "M",
-      "lugarNacimiento": "Santiago, Chile",
-      "fechaNacimiento": "1990-05-20",
-      "direccion": "Calle Falsa 123",
-      "codigoPostal": "8320000",
-      "pais": "Chile",
-      "localizacion": "Santiago, Chile",
-      "disponibilidadDesde": "2025-01-01",
-      "disponibilidadHasta": "2025-12-31"
-    },
+    "id": 1,
+    "nombre": "Juan",
+    "apellidos": "Pérez",
+    "email": "juan.perez@example.com",
+    "telefono": "+56912345678",
+    "tipoDocumento": "RUT",
+    "numeroDocumento": "12.345.678-9",
+    "genero": "M",
+    "lugarNacimiento": "Santiago, Chile",
+    "fechaNacimiento": "1990-05-20",
+    "direccion": "Calle Falsa 123",
+    "codigoPostal": "8320000",
+    "pais": "Chile",
+    "localizacion": "Santiago, Chile",
+    "disponibilidadDesde": "2025-01-01",
+    "disponibilidadHasta": "2025-12-31",
     "adjuntos": [
       {
         "id": 1,
