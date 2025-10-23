@@ -4,6 +4,7 @@ import { Observable, throwError, timeout } from 'rxjs';
 import { catchError, retry } from 'rxjs/operators';
 import { environment } from '../../../environments/environment.development';
 import { CandidatoConAdjuntos } from '../../shared/models/candidato-adjuntos.model';
+import { Candidato } from '../../shared/models/candidato.model';
 
 
 @Injectable({
@@ -28,6 +29,10 @@ export class CandidatoService {
       retry({ count: 2, delay: 1000 }),
       catchError(this.handleError)
     );
+  }
+
+  createCandidato(candidato: Omit<Candidato, 'id'>): Observable<Candidato> {
+    return this.http.post<Candidato>(this.apiUrl, candidato);
   }
 
   private handleError(error: HttpErrorResponse): Observable<never> {

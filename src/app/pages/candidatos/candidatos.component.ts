@@ -11,6 +11,7 @@ import { STORAGE_KEYS } from '../../shared/constants/storage-keys';
 import { getFileIcon } from '../../shared/constants/file-icons';
 import { debounceSignal } from '../../shared/utils/debounce-signal';
 import { CandidatoView } from '../../shared/models/candidato-view.model';
+import { Candidato } from '../../shared/models/candidato.model';
 
 @Component({
   selector: 'app-candidatos',
@@ -28,15 +29,19 @@ export class CandidatosComponent {
   private expandedRowsSignal = signal<Set<number>>(new Set());
   private currentPageSignal = signal(this.loadSavedPage());
   
-  // Signals para el modal de eliminación
   private showDeleteModalSignal = signal(false);
   private candidatoToDeleteSignal = signal<{ id: number; nombre: string } | null>(null);
   private deletingSignal = signal(false);
+
+  private showCreateModalSignal = signal(false);
+  private savingSignal = signal(false);
   
-  // Signals para toast de notificación
   private showToastSignal = signal(false);
   private toastMessageSignal = signal('');
   private toastTypeSignal = signal<'success' | 'error'>('success');
+
+  readonly showCreateModal = this.showCreateModalSignal.asReadonly();
+  readonly saving = this.savingSignal.asReadonly();
 
   searchTermInput = signal<string>('');
 
@@ -262,5 +267,63 @@ export class CandidatosComponent {
     setTimeout(() => {
       this.showToastSignal.set(false);
     }, 3000);
+  }
+
+  // Métodos para el modal de creación
+  openCreateModal(): void {
+    this.showCreateModalSignal.set(true);
+  }
+
+  closeCreateModal(): void {
+    if (!this.saving()) {
+      this.showCreateModalSignal.set(false);
+    }
+  }
+
+  createCandidato(candidatoData: Omit<Candidato, 'id'>): void {
+    this.savingSignal.set(true);
+
+    this.candidatoService.createCandidato(candidatoData).subscribe({
+      next: (nuevoCandidato) => {
+        // Asignar avatar al nuevo candidato
+        const savedAvatars = this.avatarService.getAvatarMap();
+        const candidatoView: CandidatoView = {
+          ...nuevoCandidato,
+          avatarUrl: this.avatarService.getOrAssignAvatar(nuevoCandidato.id, savedAvatars),
+          adjuntos: []
+        };
+
+        // Actualizar lista
+        const updatedCandidatos = [candidatoView, ...this.candidatosSignal()];
+        this.candidatosSignal.set(updatedCandidatos);
+        
+        // Guardar avatares
+        this.avatarService.saveAvatars(updatedCandidatos);
+
+        this.showToastWithMessage('Candidato creado exitosamente', 'success');
+        this.savingSignal.set(false);
+        this.closeCreateModal();
+        
+        // Ir a la primera página para ver el nuevo candidato
+        this.goToPage(1);
+      },
+      error: (error) => {
+        console.error('Error al crear candidato:', error);
+        let errorMessage = 'Error al crear el candidato. Por favor, intenta nuevamente.';
+        
+        if (error.status === 409) {
+          errorMessage = 'El email ya está registrado.';
+        } else if (error.status === 400 && error.error?.validationErrors) {
+          errorMessage = 'Por favor corrige los errores del formulario.';
+        }
+        
+        this.showToastWithMessage(errorMessage, 'error');
+        this.savingSignal.set(false);
+      }
+    });
+  }
+
+  getCurrentDate(): string {
+    return new Date().toISOString().split('T')[0];
   }
 }

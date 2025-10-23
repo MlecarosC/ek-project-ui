@@ -29,6 +29,17 @@
     <!-- Tabla de candidatos -->
     @if (!loading() && !error()) {
       <div class="w-full max-w-6xl mt-20 space-y-4">
+        <!-- Botón para agregar candidato -->
+        <div class="flex justify-end mb-4">
+          <button 
+            class="btn btn-primary gap-2"
+            (click)="openCreateModal()">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Candidato
+          </button>
+        </div>
         
         <!-- Barra de búsqueda con debounce -->
         <div class="px-2">
@@ -365,6 +376,398 @@
     <form method="dialog" class="modal-backdrop">
       <button (click)="closeDeleteModal()">close</button>
     </form>
+  </dialog>
+}
+
+<!-- Modal para crear candidato -->
+@if (showCreateModal()) {
+  <dialog class="modal modal-open">
+    <div class="modal-box max-w-4xl max-h-[90vh] overflow-y-auto">
+      <h3 class="font-bold text-xl mb-6">Agregar Nuevo Candidato</h3>
+      
+      <form #candidatoForm="ngForm" (ngSubmit)="candidatoForm.valid && createCandidato(candidatoForm.value)">
+        <!-- Información Personal -->
+        <div class="space-y-4 mb-6">
+          <h4 class="font-semibold text-lg flex items-center gap-2 border-b pb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            Información Personal
+          </h4>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Nombre -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Nombre <span class="text-error">*</span></span>
+              </label>
+              <input 
+                type="text" 
+                name="nombre"
+                class="input input-bordered"
+                ngModel
+                required
+                maxlength="50"
+                #nombre="ngModel"
+                [class.input-error]="nombre.invalid && nombre.touched" />
+              @if (nombre.invalid && nombre.touched) {
+                <label class="label">
+                  <span class="label-text-alt text-error">El nombre es obligatorio (máx. 50 caracteres)</span>
+                </label>
+              }
+            </div>
+
+            <!-- Apellidos -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Apellidos <span class="text-error">*</span></span>
+              </label>
+              <input 
+                type="text" 
+                name="apellidos"
+                class="input input-bordered"
+                ngModel
+                required
+                maxlength="50"
+                #apellidos="ngModel"
+                [class.input-error]="apellidos.invalid && apellidos.touched" />
+              @if (apellidos.invalid && apellidos.touched) {
+                <label class="label">
+                  <span class="label-text-alt text-error">Los apellidos son obligatorios (máx. 50 caracteres)</span>
+                </label>
+              }
+            </div>
+
+            <!-- Email -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Email <span class="text-error">*</span></span>
+              </label>
+              <input 
+                type="email" 
+                name="email"
+                class="input input-bordered"
+                ngModel
+                required
+                email
+                maxlength="150"
+                #email="ngModel"
+                [class.input-error]="email.invalid && email.touched" />
+              @if (email.invalid && email.touched) {
+                <label class="label">
+                  <span class="label-text-alt text-error">Email válido requerido</span>
+                </label>
+              }
+            </div>
+
+            <!-- Teléfono -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Teléfono <span class="text-error">*</span></span>
+              </label>
+              <input 
+                type="tel" 
+                name="telefono"
+                class="input input-bordered"
+                ngModel
+                required
+                maxlength="20"
+                #telefono="ngModel"
+                [class.input-error]="telefono.invalid && telefono.touched" />
+              @if (telefono.invalid && telefono.touched) {
+                <label class="label">
+                  <span class="label-text-alt text-error">El teléfono es obligatorio</span>
+                </label>
+              }
+            </div>
+
+            <!-- Tipo Documento -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Tipo Documento <span class="text-error">*</span></span>
+              </label>
+              <select 
+                name="tipoDocumento"
+                class="select select-bordered"
+                ngModel
+                required
+                #tipoDocumento="ngModel"
+                [class.select-error]="tipoDocumento.invalid && tipoDocumento.touched">
+                <option value="">Seleccionar...</option>
+                <option value="RUT">RUT</option>
+                <option value="DNI">DNI</option>
+                <option value="PASAPORTE">PASAPORTE</option>
+                <option value="CI">CI</option>
+              </select>
+              @if (tipoDocumento.invalid && tipoDocumento.touched) {
+                <label class="label">
+                  <span class="label-text-alt text-error">Selecciona un tipo de documento</span>
+                </label>
+              }
+            </div>
+
+            <!-- Número Documento -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Número Documento <span class="text-error">*</span></span>
+              </label>
+              <input 
+                type="text" 
+                name="numeroDocumento"
+                class="input input-bordered"
+                ngModel
+                required
+                maxlength="30"
+                #numeroDocumento="ngModel"
+                [class.input-error]="numeroDocumento.invalid && numeroDocumento.touched" />
+              @if (numeroDocumento.invalid && numeroDocumento.touched) {
+                <label class="label">
+                  <span class="label-text-alt text-error">El número de documento es obligatorio</span>
+                </label>
+              }
+            </div>
+
+            <!-- Género -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Género <span class="text-error">*</span></span>
+              </label>
+              <select 
+                name="genero"
+                class="select select-bordered"
+                ngModel
+                required
+                #genero="ngModel"
+                [class.select-error]="genero.invalid && genero.touched">
+                <option value="">Seleccionar...</option>
+                <option value="M">Masculino</option>
+                <option value="F">Femenino</option>
+                <option value="OTRO">Otro</option>
+              </select>
+              @if (genero.invalid && genero.touched) {
+                <label class="label">
+                  <span class="label-text-alt text-error">Selecciona un género</span>
+                </label>
+              }
+            </div>
+
+            <!-- Fecha Nacimiento -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Fecha de Nacimiento <span class="text-error">*</span></span>
+              </label>
+              <input 
+                type="date" 
+                name="fechaNacimiento"
+                class="input input-bordered"
+                ngModel
+                required
+                [max]="getCurrentDate()"
+                #fechaNacimiento="ngModel"
+                [class.input-error]="fechaNacimiento.invalid && fechaNacimiento.touched" />
+              @if (fechaNacimiento.invalid && fechaNacimiento.touched) {
+                <label class="label">
+                  <span class="label-text-alt text-error">Fecha válida requerida</span>
+                </label>
+              }
+            </div>
+
+            <!-- Lugar Nacimiento -->
+            <div class="form-control md:col-span-2">
+              <label class="label">
+                <span class="label-text">Lugar de Nacimiento <span class="text-error">*</span></span>
+              </label>
+              <input 
+                type="text" 
+                name="lugarNacimiento"
+                class="input input-bordered"
+                ngModel
+                required
+                maxlength="200"
+                #lugarNacimiento="ngModel"
+                [class.input-error]="lugarNacimiento.invalid && lugarNacimiento.touched" />
+              @if (lugarNacimiento.invalid && lugarNacimiento.touched) {
+                <label class="label">
+                  <span class="label-text-alt text-error">El lugar de nacimiento es obligatorio</span>
+                </label>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Información de Contacto -->
+        <div class="space-y-4 mb-6">
+          <h4 class="font-semibold text-lg flex items-center gap-2 border-b pb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Información de Contacto
+          </h4>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Dirección -->
+            <div class="form-control md:col-span-2">
+              <label class="label">
+                <span class="label-text">Dirección <span class="text-error">*</span></span>
+              </label>
+              <input 
+                type="text" 
+                name="direccion"
+                class="input input-bordered"
+                ngModel
+                required
+                maxlength="200"
+                #direccion="ngModel"
+                [class.input-error]="direccion.invalid && direccion.touched" />
+              @if (direccion.invalid && direccion.touched) {
+                <label class="label">
+                  <span class="label-text-alt text-error">La dirección es obligatoria</span>
+                </label>
+              }
+            </div>
+
+            <!-- Código Postal -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Código Postal <span class="text-error">*</span></span>
+              </label>
+              <input 
+                type="text" 
+                name="codigoPostal"
+                class="input input-bordered"
+                ngModel
+                required
+                maxlength="20"
+                #codigoPostal="ngModel"
+                [class.input-error]="codigoPostal.invalid && codigoPostal.touched" />
+              @if (codigoPostal.invalid && codigoPostal.touched) {
+                <label class="label">
+                  <span class="label-text-alt text-error">El código postal es obligatorio</span>
+                </label>
+              }
+            </div>
+
+            <!-- País -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">País <span class="text-error">*</span></span>
+              </label>
+              <input 
+                type="text" 
+                name="pais"
+                class="input input-bordered"
+                ngModel
+                required
+                maxlength="50"
+                #pais="ngModel"
+                [class.input-error]="pais.invalid && pais.touched" />
+              @if (pais.invalid && pais.touched) {
+                <label class="label">
+                  <span class="label-text-alt text-error">El país es obligatorio</span>
+                </label>
+              }
+            </div>
+
+            <!-- Localización -->
+            <div class="form-control md:col-span-2">
+              <label class="label">
+                <span class="label-text">Localización <span class="text-error">*</span></span>
+              </label>
+              <input 
+                type="text" 
+                name="localizacion"
+                class="input input-bordered"
+                ngModel
+                required
+                maxlength="150"
+                placeholder="Ciudad, Región"
+                #localizacion="ngModel"
+                [class.input-error]="localizacion.invalid && localizacion.touched" />
+              @if (localizacion.invalid && localizacion.touched) {
+                <label class="label">
+                  <span class="label-text-alt text-error">La localización es obligatoria</span>
+                </label>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Disponibilidad -->
+        <div class="space-y-4 mb-6">
+          <h4 class="font-semibold text-lg flex items-center gap-2 border-b pb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Disponibilidad
+          </h4>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Disponibilidad Desde -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Disponibilidad Desde <span class="text-error">*</span></span>
+              </label>
+              <input 
+                type="date" 
+                name="disponibilidadDesde"
+                class="input input-bordered"
+                ngModel
+                required
+                #disponibilidadDesde="ngModel"
+                [class.input-error]="disponibilidadDesde.invalid && disponibilidadDesde.touched" />
+              @if (disponibilidadDesde.invalid && disponibilidadDesde.touched) {
+                <label class="label">
+                  <span class="label-text-alt text-error">Fecha requerida</span>
+                </label>
+              }
+            </div>
+
+            <!-- Disponibilidad Hasta -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Disponibilidad Hasta <span class="text-error">*</span></span>
+              </label>
+              <input 
+                type="date" 
+                name="disponibilidadHasta"
+                class="input input-bordered"
+                ngModel
+                required
+                #disponibilidadHasta="ngModel"
+                [class.input-error]="disponibilidadHasta.invalid && disponibilidadHasta.touched" />
+              @if (disponibilidadHasta.invalid && disponibilidadHasta.touched) {
+                <label class="label">
+                  <span class="label-text-alt text-error">Fecha requerida</span>
+                </label>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Botones del modal -->
+        <div class="modal-action">
+          <button 
+            type="button"
+            class="btn btn-ghost"
+            (click)="closeCreateModal()"
+            [disabled]="saving()">
+            Cancelar
+          </button>
+          <button 
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="saving() || candidatoForm.invalid">
+            @if (saving()) {
+              <span class="loading loading-spinner"></span>
+              Guardando...
+            } @else {
+              Crear Candidato
+            }
+          </button>
+        </div>
+      </form>
+    </div>
   </dialog>
 }
 
