@@ -3,7 +3,8 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError, timeout } from 'rxjs';
 import { catchError, retry } from 'rxjs/operators';
 import { environment } from '../../../environments/environment.development';
-import { ResponseCandidato } from '../../shared/models/candidato-view.model';
+import { CandidatoConAdjuntos } from '../../shared/models/candidato-adjuntos.model';
+
 
 @Injectable({
   providedIn: 'root'
@@ -21,8 +22,8 @@ export class CandidatoService {
     );
   }
 
-  getAllCandidatosConAdjuntos(): Observable<ResponseCandidato[]> {
-    return this.http.get<ResponseCandidato[]>(`${this.apiUrl}/adjuntos`).pipe(
+  getAllCandidatosConAdjuntos(): Observable<CandidatoConAdjuntos[]> {
+    return this.http.get<CandidatoConAdjuntos[]>(`${this.apiUrl}/adjuntos`).pipe(
       timeout(environment.apiTimeout),
       retry({ count: 2, delay: 1000 }),
       catchError(this.handleError)

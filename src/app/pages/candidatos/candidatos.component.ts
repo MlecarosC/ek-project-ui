@@ -50,10 +50,10 @@ export class CandidatosComponent {
         this.errorSignal.set('');
         const savedAvatars = this.avatarService.getAvatarMap();
 
-        const candidatos = data.map(({ candidato, adjuntos }) => ({
+        const candidatos = data.map((candidato) => ({
           ...candidato,
           avatarUrl: this.avatarService.getOrAssignAvatar(candidato.id, savedAvatars),
-          adjuntos
+          adjuntos: candidato.adjuntos || []
         }));
 
         this.candidatosSignal.set(candidatos);
