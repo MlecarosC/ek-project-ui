@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map, catchError, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
-import { AdjuntoService } from '../../core/services/adjunto.service';
 import { CandidatoService } from '../../core/services/candidato.service';
 import { StorageService } from '../../core/services/storage.service';
 import { AvatarService } from '../../core/services/avatar.service';
@@ -21,7 +20,6 @@ import { CandidatoView } from '../../shared/models/candidato-view.model';
 export class CandidatosComponent {
   Math = Math;
 
-  private adjuntoService = inject(AdjuntoService);
   private candidatoService = inject(CandidatoService);
   private storageService = inject(StorageService);
   private avatarService = inject(AvatarService);
@@ -41,23 +39,23 @@ export class CandidatosComponent {
   private toastTypeSignal = signal<'success' | 'error'>('success');
 
   searchTermInput = signal<string>('');
-  
+
   readonly searchTerm = debounceSignal(this.searchTermInput, 300);
 
   private candidatosSignal = signal<CandidatoView[]>([]);
 
   private candidatosData = toSignal(
-    this.adjuntoService.getAllCandidatosConAdjuntos().pipe(
+    this.candidatoService.getAllCandidatosConAdjuntos().pipe(
       map(data => {
         this.errorSignal.set('');
         const savedAvatars = this.avatarService.getAvatarMap();
-        
+
         const candidatos = data.map(({ candidato, adjuntos }) => ({
           ...candidato,
           avatarUrl: this.avatarService.getOrAssignAvatar(candidato.id, savedAvatars),
           adjuntos
         }));
-        
+
         this.candidatosSignal.set(candidatos);
         return candidatos;
       }),
@@ -88,16 +86,16 @@ export class CandidatosComponent {
   readonly filteredCandidatos = computed(() => {
     const term = this.searchTerm().toLowerCase().trim();
     const allCandidatos = this.candidatos();
-    
+
     if (!term) {
       return allCandidatos;
     }
-    
+
     return allCandidatos.filter(candidato => {
       const nombreCompleto = `${candidato.nombre} ${candidato.apellidos}`.toLowerCase();
       const email = candidato.email.toLowerCase();
       const pais = candidato.pais.toLowerCase();
-      
+
       return nombreCompleto.includes(term) || 
              email.includes(term) || 
              pais.includes(term);
@@ -119,7 +117,7 @@ export class CandidatosComponent {
     const maxPagesToShow = 5;
     const total = this.totalPages();
     const current = this.currentPage();
-    
+
     if (total <= maxPagesToShow) {
       for (let i = 1; i <= total; i++) {
         pages.push(i);
@@ -138,7 +136,7 @@ export class CandidatosComponent {
         pages.push(i);
       }
     }
-    
+
     return pages;
   });
 

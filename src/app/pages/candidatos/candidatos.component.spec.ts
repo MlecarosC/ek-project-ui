@@ -1,14 +1,14 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { CandidatosComponent } from './candidatos.component';
-import { AdjuntoService } from '../../core/services/adjunto.service';
 import { StorageService } from '../../core/services/storage.service';
 import { AvatarService } from '../../core/services/avatar.service';
 import { of, throwError } from 'rxjs';
+import { CandidatoService } from '../../core/services/candidato.service';
 
 describe('CandidatosComponent', () => {
   let component: CandidatosComponent;
   let fixture: ComponentFixture<CandidatosComponent>;
-  let mockAdjuntoService: jest.Mocked<AdjuntoService>;
+  let mockCandidatosService: jest.Mocked<CandidatoService>;
   let mockStorageService: jest.Mocked<StorageService>;
   let mockAvatarService: jest.Mocked<AvatarService>;
 
@@ -142,7 +142,7 @@ describe('CandidatosComponent', () => {
   ];
 
   beforeEach(async () => {
-    mockAdjuntoService = {
+    mockCandidatosService = {
       getAllCandidatosConAdjuntos: jest.fn(),
     } as any;
 
@@ -159,13 +159,13 @@ describe('CandidatosComponent', () => {
       saveAvatars: jest.fn(),
     } as any;
 
-    mockAdjuntoService.getAllCandidatosConAdjuntos.mockReturnValue(of(mockCandidatosData));
+    mockCandidatosService.getAllCandidatosConAdjuntos.mockReturnValue(of(mockCandidatosData));
     mockStorageService.get.mockReturnValue(1);
 
     await TestBed.configureTestingModule({
       imports: [CandidatosComponent],
       providers: [
-        { provide: AdjuntoService, useValue: mockAdjuntoService },
+        { provide: CandidatoService, useValue: mockCandidatosService },
         { provide: StorageService, useValue: mockStorageService },
         { provide: AvatarService, useValue: mockAvatarService },
       ],
@@ -191,7 +191,7 @@ describe('CandidatosComponent', () => {
     });
 
     it('should call service on init', () => {
-      expect(mockAdjuntoService.getAllCandidatosConAdjuntos).toHaveBeenCalled();
+      expect(mockCandidatosService.getAllCandidatosConAdjuntos).toHaveBeenCalled();
     });
   });
 
@@ -263,7 +263,7 @@ describe('CandidatosComponent', () => {
 
   describe('Edge cases and uncovered lines', () => {
     it('should handle empty candidatos list', fakeAsync(() => {
-        mockAdjuntoService.getAllCandidatosConAdjuntos.mockReturnValue(of([]));
+        mockCandidatosService.getAllCandidatosConAdjuntos.mockReturnValue(of([]));
         
         const newFixture = TestBed.createComponent(CandidatosComponent);
         const newComponent = newFixture.componentInstance;
@@ -303,7 +303,7 @@ describe('CandidatosComponent', () => {
     });
 
     it('should handle pagination with single page', fakeAsync(() => {
-        mockAdjuntoService.getAllCandidatosConAdjuntos.mockReturnValue(
+        mockCandidatosService.getAllCandidatosConAdjuntos.mockReturnValue(
         of(mockCandidatosData.slice(0, 3))
         );
 
@@ -327,7 +327,7 @@ describe('CandidatosComponent', () => {
         adjuntos: [],
         }));
 
-        mockAdjuntoService.getAllCandidatosConAdjuntos.mockReturnValue(
+        mockCandidatosService.getAllCandidatosConAdjuntos.mockReturnValue(
         of(manyCandidatos)
         );
 

@@ -1,26 +1,26 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { AdjuntoService } from './adjunto.service';
 import { environment } from '../../../environments/environment.development';
-import { ResponseAdjunto } from '../../shared/models/adjunto.model';
 import { fakeAsync, tick } from '@angular/core/testing';
+import { CandidatoService } from './candidato.service';
+import { ResponseCandidato } from '../../shared/models/candidato-view.model';
 
-describe('AdjuntoService', () => {
-  let service: AdjuntoService;
+describe('CandidatoService', () => {
+  let service: CandidatoService;
   let httpMock: HttpTestingController;
-  const apiUrl = `${environment.apiBaseUrl}/adjuntos`;
+  const apiUrl = `${environment.apiBaseUrl}/candidatos/adjuntos`;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        AdjuntoService,
+        CandidatoService,
         provideHttpClient(),
         provideHttpClientTesting(),
       ],
     });
 
-    service = TestBed.inject(AdjuntoService);
+    service = TestBed.inject(CandidatoService);
     httpMock = TestBed.inject(HttpTestingController);
   });
 
@@ -34,7 +34,7 @@ describe('AdjuntoService', () => {
 
   describe('getAllCandidatosConAdjuntos', () => {
     it('should fetch candidatos with adjuntos successfully', (done) => {
-      const mockData: ResponseAdjunto[] = [
+      const mockData: ResponseCandidato[] = [
         {
           candidato: {
             id: 1,
@@ -80,7 +80,7 @@ describe('AdjuntoService', () => {
     });
 
     it('should handle empty response', (done) => {
-      const emptyData: ResponseAdjunto[] = [];
+      const emptyData: ResponseCandidato[] = [];
 
       service.getAllCandidatosConAdjuntos().subscribe({
         next: (data) => {
@@ -96,7 +96,7 @@ describe('AdjuntoService', () => {
     });
 
     it('should handle multiple candidatos', (done) => {
-      const mockData: ResponseAdjunto[] = [
+      const mockData: ResponseCandidato[] = [
         {
           candidato: {
             id: 1,
@@ -314,7 +314,7 @@ describe('AdjuntoService', () => {
 
         expect(errorReceived).toBeDefined();
         expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error en AdjuntoService:',
+        'Error en CandidatoService:',
         expect.stringContaining('Error del servidor')
         );
         
@@ -383,7 +383,7 @@ describe('AdjuntoService', () => {
 
     it('should succeed after first retry', fakeAsync(() => {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-        const mockData: ResponseAdjunto[] = [
+        const mockData: ResponseCandidato[] = [
         {
             candidato: {
             id: 1,
@@ -407,7 +407,7 @@ describe('AdjuntoService', () => {
         },
         ];
 
-        let resultData: ResponseAdjunto[] | undefined;
+        let resultData: ResponseCandidato[] | undefined;
 
         service.getAllCandidatosConAdjuntos().subscribe({
         next: (data) => {
@@ -435,7 +435,7 @@ describe('AdjuntoService', () => {
     }));
 
     it('should succeed on initial request without retrying', fakeAsync(() => {
-        const mockData: ResponseAdjunto[] = [
+        const mockData: ResponseCandidato[] = [
         {
             candidato: {
             id: 1,
@@ -461,7 +461,7 @@ describe('AdjuntoService', () => {
         },
         ];
 
-        let resultData: ResponseAdjunto[] | undefined;
+        let resultData: ResponseCandidato[] | undefined;
 
         service.getAllCandidatosConAdjuntos().subscribe({
         next: (data) => {

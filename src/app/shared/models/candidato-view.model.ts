@@ -5,3 +5,8 @@ export interface CandidatoView extends Candidato {
   avatarUrl: string;
   adjuntos: Adjunto[];
 }
+
+export interface ResponseCandidato {
+  candidato: Candidato;
+  adjuntos: Adjunto[];
+}

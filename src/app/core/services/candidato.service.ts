@@ -1,8 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError, timeout } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, retry } from 'rxjs/operators';
 import { environment } from '../../../environments/environment.development';
+import { ResponseCandidato } from '../../shared/models/candidato-view.model';
 
 @Injectable({
   providedIn: 'root'
@@ -16,6 +17,14 @@ export class CandidatoService {
     
     return this.http.delete<void>(url).pipe(
       timeout(environment.apiTimeout),
+      catchError(this.handleError)
+    );
+  }
+
+  getAllCandidatosConAdjuntos(): Observable<ResponseCandidato[]> {
+    return this.http.get<ResponseCandidato[]>(`${this.apiUrl}/adjuntos`).pipe(
+      timeout(environment.apiTimeout),
+      retry({ count: 2, delay: 1000 }),
       catchError(this.handleError)
     );
   }
