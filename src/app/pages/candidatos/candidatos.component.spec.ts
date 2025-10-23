@@ -1,148 +1,136 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { CandidatosComponent } from './candidatos.component';
-import { AdjuntoService } from '../../core/services/adjunto.service';
 import { StorageService } from '../../core/services/storage.service';
 import { AvatarService } from '../../core/services/avatar.service';
 import { of, throwError } from 'rxjs';
+import { CandidatoService } from '../../core/services/candidato.service';
 
 describe('CandidatosComponent', () => {
   let component: CandidatosComponent;
   let fixture: ComponentFixture<CandidatosComponent>;
-  let mockAdjuntoService: jest.Mocked<AdjuntoService>;
+  let mockCandidatosService: jest.Mocked<CandidatoService>;
   let mockStorageService: jest.Mocked<StorageService>;
   let mockAvatarService: jest.Mocked<AvatarService>;
 
   const mockCandidatosData = [
     {
-      candidato: {
-        id: 1,
-        nombre: 'Juan',
-        apellidos: 'Pérez',
-        email: 'juan@test.com',
-        telefono: '+56912345678',
-        tipoDocumento: 'RUT',
-        numeroDocumento: '12345678-9',
-        genero: 'M',
-        lugarNacimiento: 'Santiago',
-        fechaNacimiento: '1990-01-01',
-        direccion: 'Calle 123',
-        codigoPostal: '12345',
-        pais: 'Chile',
-        localizacion: 'Santiago, Chile',
-        disponibilidadDesde: '2025-01-01',
-        disponibilidadHasta: '2025-12-31',
-      },
+      id: 1,
+      nombre: 'Juan',
+      apellidos: 'Pérez',
+      email: 'juan@test.com',
+      telefono: '+56912345678',
+      tipoDocumento: 'RUT',
+      numeroDocumento: '12345678-9',
+      genero: 'M',
+      lugarNacimiento: 'Santiago',
+      fechaNacimiento: '1990-01-01',
+      direccion: 'Calle 123',
+      codigoPostal: '12345',
+      pais: 'Chile',
+      localizacion: 'Santiago, Chile',
+      disponibilidadDesde: '2025-01-01',
+      disponibilidadHasta: '2025-12-31',
       adjuntos: [{ id: 1, extension: 'pdf', nombreArchivo: 'cv.pdf' }],
     },
     {
-      candidato: {
-        id: 2,
-        nombre: 'María',
-        apellidos: 'González',
-        email: 'maria@test.com',
-        telefono: '+56987654321',
-        tipoDocumento: 'RUT',
-        numeroDocumento: '98765432-1',
-        genero: 'F',
-        lugarNacimiento: 'Valparaíso',
-        fechaNacimiento: '1992-05-15',
-        direccion: 'Avenida 456',
-        codigoPostal: '54321',
-        pais: 'Chile',
-        localizacion: 'Valparaíso, Chile',
-        disponibilidadDesde: '2025-02-01',
-        disponibilidadHasta: '2025-12-31',
-      },
+      id: 2,
+      nombre: 'María',
+      apellidos: 'González',
+      email: 'maria@test.com',
+      telefono: '+56987654321',
+      tipoDocumento: 'RUT',
+      numeroDocumento: '98765432-1',
+      genero: 'F',
+      lugarNacimiento: 'Valparaíso',
+      fechaNacimiento: '1992-05-15',
+      direccion: 'Avenida 456',
+      codigoPostal: '54321',
+      pais: 'Chile',
+      localizacion: 'Valparaíso, Chile',
+      disponibilidadDesde: '2025-02-01',
+      disponibilidadHasta: '2025-12-31',
       adjuntos: [],
     },
     {
-      candidato: {
-        id: 3,
-        nombre: 'Pedro',
-        apellidos: 'Silva',
-        email: 'pedro@test.com',
-        telefono: '+56911111111',
-        tipoDocumento: 'RUT',
-        numeroDocumento: '11111111-1',
-        genero: 'M',
-        lugarNacimiento: 'Concepción',
-        fechaNacimiento: '1988-03-20',
-        direccion: 'Pasaje 789',
-        codigoPostal: '11111',
-        pais: 'Chile',
-        localizacion: 'Concepción, Chile',
-        disponibilidadDesde: '2025-03-01',
-        disponibilidadHasta: '2025-12-31',
-      },
+      id: 3,
+      nombre: 'Pedro',
+      apellidos: 'Silva',
+      email: 'pedro@test.com',
+      telefono: '+56911111111',
+      tipoDocumento: 'RUT',
+      numeroDocumento: '11111111-1',
+      genero: 'M',
+      lugarNacimiento: 'Concepción',
+      fechaNacimiento: '1988-03-20',
+      direccion: 'Pasaje 789',
+      codigoPostal: '11111',
+      pais: 'Chile',
+      localizacion: 'Concepción, Chile',
+      disponibilidadDesde: '2025-03-01',
+      disponibilidadHasta: '2025-12-31',
       adjuntos: [{ id: 2, extension: 'docx', nombreArchivo: 'certificado.docx' }],
     },
     {
-      candidato: {
-        id: 4,
-        nombre: 'Ana',
-        apellidos: 'Torres',
-        email: 'ana@test.com',
-        telefono: '+56922222222',
-        tipoDocumento: 'RUT',
-        numeroDocumento: '22222222-2',
-        genero: 'F',
-        lugarNacimiento: 'La Serena',
-        fechaNacimiento: '1995-07-10',
-        direccion: 'Calle 999',
-        codigoPostal: '22222',
-        pais: 'Chile',
-        localizacion: 'La Serena, Chile',
-        disponibilidadDesde: '2025-04-01',
-        disponibilidadHasta: '2025-12-31',
-      },
+      id: 4,
+      nombre: 'Ana',
+      apellidos: 'Torres',
+      email: 'ana@test.com',
+      telefono: '+56922222222',
+      tipoDocumento: 'RUT',
+      numeroDocumento: '22222222-2',
+      genero: 'F',
+      lugarNacimiento: 'La Serena',
+      fechaNacimiento: '1995-07-10',
+      direccion: 'Calle 999',
+      codigoPostal: '22222',
+      pais: 'Chile',
+      localizacion: 'La Serena, Chile',
+      disponibilidadDesde: '2025-04-01',
+      disponibilidadHasta: '2025-12-31',
       adjuntos: [],
     },
     {
-      candidato: {
-        id: 5,
-        nombre: 'Luis',
-        apellidos: 'Rojas',
-        email: 'luis@test.com',
-        telefono: '+56933333333',
-        tipoDocumento: 'RUT',
-        numeroDocumento: '33333333-3',
-        genero: 'M',
-        lugarNacimiento: 'Antofagasta',
-        fechaNacimiento: '1991-11-25',
-        direccion: 'Avenida 111',
-        codigoPostal: '33333',
-        pais: 'Chile',
-        localizacion: 'Antofagasta, Chile',
-        disponibilidadDesde: '2025-05-01',
-        disponibilidadHasta: '2025-12-31',
-      },
+      id: 5,
+      nombre: 'Luis',
+      apellidos: 'Rojas',
+      email: 'luis@test.com',
+      telefono: '+56933333333',
+      tipoDocumento: 'RUT',
+      numeroDocumento: '33333333-3',
+      genero: 'M',
+      lugarNacimiento: 'Antofagasta',
+      fechaNacimiento: '1991-11-25',
+      direccion: 'Avenida 111',
+      codigoPostal: '33333',
+      pais: 'Chile',
+      localizacion: 'Antofagasta, Chile',
+      disponibilidadDesde: '2025-05-01',
+      disponibilidadHasta: '2025-12-31',
       adjuntos: [{ id: 3, extension: 'jpg', nombreArchivo: 'foto.jpg' }],
     },
     {
-      candidato: {
-        id: 6,
-        nombre: 'Carmen',
-        apellidos: 'Muñoz',
-        email: 'carmen@test.com',
-        telefono: '+56944444444',
-        tipoDocumento: 'RUT',
-        numeroDocumento: '44444444-4',
-        genero: 'F',
-        lugarNacimiento: 'Temuco',
-        fechaNacimiento: '1993-09-15',
-        direccion: 'Pasaje 222',
-        codigoPostal: '44444',
-        pais: 'Chile',
-        localizacion: 'Temuco, Chile',
-        disponibilidadDesde: '2025-06-01',
-        disponibilidadHasta: '2025-12-31',
-      },
+      id: 6,
+      nombre: 'Carmen',
+      apellidos: 'Muñoz',
+      email: 'carmen@test.com',
+      telefono: '+56944444444',
+      tipoDocumento: 'RUT',
+      numeroDocumento: '44444444-4',
+      genero: 'F',
+      lugarNacimiento: 'Temuco',
+      fechaNacimiento: '1993-09-15',
+      direccion: 'Pasaje 222',
+      codigoPostal: '44444',
+      pais: 'Chile',
+      localizacion: 'Temuco, Chile',
+      disponibilidadDesde: '2025-06-01',
+      disponibilidadHasta: '2025-12-31',
       adjuntos: [],
     },
   ];
 
   beforeEach(async () => {
-    mockAdjuntoService = {
+    mockCandidatosService = {
       getAllCandidatosConAdjuntos: jest.fn(),
     } as any;
 
@@ -159,13 +147,13 @@ describe('CandidatosComponent', () => {
       saveAvatars: jest.fn(),
     } as any;
 
-    mockAdjuntoService.getAllCandidatosConAdjuntos.mockReturnValue(of(mockCandidatosData));
+    mockCandidatosService.getAllCandidatosConAdjuntos.mockReturnValue(of(mockCandidatosData));
     mockStorageService.get.mockReturnValue(1);
 
     await TestBed.configureTestingModule({
       imports: [CandidatosComponent],
       providers: [
-        { provide: AdjuntoService, useValue: mockAdjuntoService },
+        { provide: CandidatoService, useValue: mockCandidatosService },
         { provide: StorageService, useValue: mockStorageService },
         { provide: AvatarService, useValue: mockAvatarService },
       ],
@@ -191,7 +179,7 @@ describe('CandidatosComponent', () => {
     });
 
     it('should call service on init', () => {
-      expect(mockAdjuntoService.getAllCandidatosConAdjuntos).toHaveBeenCalled();
+      expect(mockCandidatosService.getAllCandidatosConAdjuntos).toHaveBeenCalled();
     });
   });
 
@@ -263,7 +251,7 @@ describe('CandidatosComponent', () => {
 
   describe('Edge cases and uncovered lines', () => {
     it('should handle empty candidatos list', fakeAsync(() => {
-        mockAdjuntoService.getAllCandidatosConAdjuntos.mockReturnValue(of([]));
+        mockCandidatosService.getAllCandidatosConAdjuntos.mockReturnValue(of([]));
         
         const newFixture = TestBed.createComponent(CandidatosComponent);
         const newComponent = newFixture.componentInstance;
@@ -303,7 +291,7 @@ describe('CandidatosComponent', () => {
     });
 
     it('should handle pagination with single page', fakeAsync(() => {
-        mockAdjuntoService.getAllCandidatosConAdjuntos.mockReturnValue(
+        mockCandidatosService.getAllCandidatosConAdjuntos.mockReturnValue(
         of(mockCandidatosData.slice(0, 3))
         );
 
@@ -319,15 +307,13 @@ describe('CandidatosComponent', () => {
 
     it('should generate correct page numbers for many pages', fakeAsync(() => {
         const manyCandidatos = Array.from({ length: 50 }, (_, i) => ({
-        candidato: {
-            ...mockCandidatosData[0].candidato,
-            id: i + 1,
-            nombre: `Candidato${i + 1}`,
-        },
-        adjuntos: [],
+          ...mockCandidatosData[0],
+          id: i + 1,
+          nombre: `Candidato${i + 1}`,
+          adjuntos: [],
         }));
 
-        mockAdjuntoService.getAllCandidatosConAdjuntos.mockReturnValue(
+        mockCandidatosService.getAllCandidatosConAdjuntos.mockReturnValue(
         of(manyCandidatos)
         );
 
