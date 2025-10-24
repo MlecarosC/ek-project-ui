@@ -1,8 +1,8 @@
 import { Component, signal, computed, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { map, catchError, tap } from 'rxjs/operators';
+import { map, catchError, tap, switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { CandidatoService } from '../../core/services/candidato.service';
 import { StorageService } from '../../core/services/storage.service';
@@ -11,15 +11,22 @@ import { STORAGE_KEYS } from '../../shared/constants/storage-keys';
 import { getFileIcon } from '../../shared/constants/file-icons';
 import { debounceSignal } from '../../shared/utils/debounce-signal';
 import { CandidatoView } from '../../shared/models/candidato-view.model';
+import { Candidato } from '../../shared/models/candidato.model';
+import { AdjuntoService } from '../../core/services/adjunto.service';
+import { AdjuntoCreate } from '../../shared/models/adjunto-create.model';
 
 @Component({
   selector: 'app-candidatos',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './candidatos.component.html',
 })
 export class CandidatosComponent {
   Math = Math;
 
+  private fb = inject(FormBuilder);
+  candidatoForm!: FormGroup;
+
+  private adjuntoService = inject(AdjuntoService);
   private candidatoService = inject(CandidatoService);
   private storageService = inject(StorageService);
   private avatarService = inject(AvatarService);
@@ -28,15 +35,19 @@ export class CandidatosComponent {
   private expandedRowsSignal = signal<Set<number>>(new Set());
   private currentPageSignal = signal(this.loadSavedPage());
   
-  // Signals para el modal de eliminación
   private showDeleteModalSignal = signal(false);
   private candidatoToDeleteSignal = signal<{ id: number; nombre: string } | null>(null);
   private deletingSignal = signal(false);
+
+  private showCreateModalSignal = signal(false);
+  private savingSignal = signal(false);
   
-  // Signals para toast de notificación
   private showToastSignal = signal(false);
   private toastMessageSignal = signal('');
   private toastTypeSignal = signal<'success' | 'error'>('success');
+
+  readonly showCreateModal = this.showCreateModalSignal.asReadonly();
+  readonly saving = this.savingSignal.asReadonly();
 
   searchTermInput = signal<string>('');
 
@@ -262,5 +273,137 @@ export class CandidatosComponent {
     setTimeout(() => {
       this.showToastSignal.set(false);
     }, 3000);
+  }
+
+  // Métodos para el modal de creación
+  openCreateModal(): void {
+    this.initializeForm();
+    this.showCreateModalSignal.set(true);
+  }
+
+  private initializeForm(): void {
+    this.candidatoForm = this.fb.group({
+      nombre: ['', [Validators.required, Validators.maxLength(50)]],
+      apellidos: ['', [Validators.required, Validators.maxLength(50)]],
+      email: ['', [Validators.required, Validators.email, Validators.maxLength(150)]],
+      telefono: ['', [Validators.required, Validators.maxLength(20)]],
+      tipoDocumento: ['', Validators.required],
+      numeroDocumento: ['', [Validators.required, Validators.maxLength(30)]],
+      genero: ['', Validators.required],
+      fechaNacimiento: ['', Validators.required],
+      lugarNacimiento: ['', [Validators.required, Validators.maxLength(200)]],
+      direccion: ['', [Validators.required, Validators.maxLength(200)]],
+      codigoPostal: ['', [Validators.required, Validators.maxLength(20)]],
+      pais: ['', [Validators.required, Validators.maxLength(50)]],
+      localizacion: ['', [Validators.required, Validators.maxLength(150)]],
+      disponibilidadDesde: ['', Validators.required],
+      disponibilidadHasta: ['', Validators.required],
+      adjuntos: this.fb.array([])
+    });
+  }
+
+  closeCreateModal(): void {
+    if (!this.saving()) {
+      this.showCreateModalSignal.set(false);
+      this.candidatoForm.reset();
+    }
+  }
+
+  createCandidato(): void {
+    if (this.candidatoForm.invalid) {
+      this.candidatoForm.markAllAsTouched();
+      return;
+    }
+
+    this.savingSignal.set(true);
+
+    const { adjuntos, ...candidatoData } = this.candidatoForm.value;
+    
+    this.candidatoService.createCandidato(candidatoData).pipe(
+      switchMap((nuevoCandidato: Candidato) => {
+        // Si hay adjuntos, crearlos
+        if (adjuntos && adjuntos.length > 0) {
+          const adjuntosData: AdjuntoCreate[] = adjuntos.map((adj: any) => ({
+            candidatoId: nuevoCandidato.id,
+            nombreArchivo: adj.nombreArchivo,
+            extension: adj.extension
+          }));
+          
+          return this.adjuntoService.createAdjuntos(adjuntosData).pipe(
+            map(() => nuevoCandidato)
+          );
+        }
+        // Si no hay adjuntos, continuar
+        return of(nuevoCandidato);
+      }),
+
+      switchMap(() => this.candidatoService.getAllCandidatosConAdjuntos())
+    ).subscribe({
+      next: (candidatos) => {
+        const savedAvatars = this.avatarService.getAvatarMap();
+        
+        const candidatosActualizados = candidatos.map((candidato) => ({
+          ...candidato,
+          avatarUrl: this.avatarService.getOrAssignAvatar(candidato.id, savedAvatars),
+          adjuntos: candidato.adjuntos || []
+        }));
+
+        this.candidatosSignal.set(candidatosActualizados);
+        this.avatarService.saveAvatars(candidatosActualizados);
+
+        this.showToastWithMessage('Candidato creado exitosamente', 'success');
+        this.savingSignal.set(false);
+        this.closeCreateModal();
+        this.goToPage(1);
+      },
+      error: (error) => {
+        console.error('Error al crear candidato:', error);
+        let errorMessage = 'Error al crear el candidato. Por favor, intenta nuevamente.';
+        
+        if (error.status === 409) {
+          errorMessage = 'El email ya está registrado.';
+        } else if (error.status === 400 && error.error?.validationErrors) {
+          errorMessage = 'Por favor corrige los errores del formulario.';
+        }
+        
+        this.showToastWithMessage(errorMessage, 'error');
+        this.savingSignal.set(false);
+      }
+    });
+  }
+
+  get adjuntos(): FormArray {
+    return this.candidatoForm.get('adjuntos') as FormArray;
+  }
+
+  addAdjunto(): void {
+    const adjuntoGroup = this.fb.group({
+      nombreArchivo: ['', [Validators.required, Validators.maxLength(255)]],
+      extension: ['pdf', Validators.required]
+    });
+    this.adjuntos.push(adjuntoGroup);
+  }
+
+  removeAdjunto(index: number): void {
+    this.adjuntos.removeAt(index);
+  }
+
+  getCurrentDate(): string {
+    return new Date().toISOString().split('T')[0];
+  }
+
+  getControl(controlName: string) {
+    return this.candidatoForm.get(controlName);
+  }
+
+  isFieldInvalid(fieldName: string): boolean {
+    const field = this.getControl(fieldName);
+    return !!(field && field.invalid && field.touched);
+  }
+
+  onModalBackdropClick(event: MouseEvent): void {
+    if ((event.target as HTMLElement).classList.contains('modal')) {
+      this.closeCreateModal();
+    }
   }
 }
