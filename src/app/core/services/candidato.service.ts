@@ -35,6 +35,14 @@ export class CandidatoService {
     return this.http.post<Candidato>(this.apiUrl, candidato);
   }
 
+  updateCandidato(candidatoId: number, candidato: Omit<Candidato, 'id'>): Observable<Candidato> {
+    const url = `${this.apiUrl}/${candidatoId}`;
+    return this.http.put<Candidato>(url, candidato).pipe(
+      timeout(environment.apiTimeout),
+      catchError(this.handleError)
+    );
+  }
+
   private handleError(error: HttpErrorResponse): Observable<never> {
     let errorMessage = 'Error al procesar la solicitud';
     

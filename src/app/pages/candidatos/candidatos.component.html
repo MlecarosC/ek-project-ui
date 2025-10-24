@@ -160,7 +160,7 @@
                   <td class="hidden md:table-cell">{{ candidato.telefono }}</td>
                   <td class="hidden md:table-cell">{{ candidato.tipoDocumento }}</td>
                   <td>
-                    <div class="flex gap-3">
+                    <div class="flex gap-2">
                       <button
                         class="btn btn-primary btn-xs sm:btn-sm gap-2"
                         (click)="toggleDetalles(candidato.id)">
@@ -175,6 +175,15 @@
                           </svg>
                           <span class="hidden sm:inline">Ver Detalles</span>
                         }
+                      </button>
+                      <button
+                        class="btn btn-warning btn-xs sm:btn-sm gap-1"
+                        (click)="openEditModal(candidato)"
+                        title="Editar candidato">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
                       </button>
                       <button
                           class="btn btn-error btn-xs sm:btn-sm gap-1"
@@ -792,6 +801,463 @@
             }
             @if (!saving()) {
               Crear Candidato
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+}
+
+<!-- Modal para editar candidato -->
+@if (showEditModal()) {
+  <dialog class="modal modal-open" (click)="onModalBackdropClick($event)">
+    <div class="modal-box max-w-4xl max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
+      <h3 class="font-bold text-xl mb-6">Editar Candidato</h3>
+      <form [formGroup]="candidatoForm" (ngSubmit)="updateCandidato()">
+        
+        <div class="space-y-4 mb-6">
+          <h4 class="font-semibold text-lg flex items-center gap-2 border-b pb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            Información Personal
+          </h4>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Nombre -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Nombre <span class="text-error">*</span></span>
+              </label>
+              <input 
+                type="text" 
+                formControlName="nombre"
+                class="input input-bordered w-full"
+                [class.input-error]="isFieldInvalid('nombre')" />
+              @if (isFieldInvalid('nombre')) {
+                <label class="label">
+                  <span class="label-text-alt text-error">El nombre es obligatorio (máx. 50 caracteres)</span>
+                </label>
+              }
+            </div>
+
+            <!-- Apellidos -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Apellidos <span class="text-error">*</span></span>
+              </label>
+              <input 
+                type="text" 
+                formControlName="apellidos"
+                class="input input-bordered w-full"
+                [class.input-error]="isFieldInvalid('apellidos')" />
+              @if (isFieldInvalid('apellidos')) {
+                <label class="label">
+                  <span class="label-text-alt text-error">Los apellidos son obligatorios (máx. 50 caracteres)</span>
+                </label>
+              }
+            </div>
+
+            <!-- Email -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Email <span class="text-error">*</span></span>
+              </label>
+              <input 
+                type="email" 
+                formControlName="email"
+                class="input input-bordered w-full"
+                [class.input-error]="isFieldInvalid('email')" />
+              @if (isFieldInvalid('email')) {
+                <label class="label">
+                  <span class="label-text-alt text-error">Email válido requerido</span>
+                </label>
+              }
+            </div>
+
+            <!-- Teléfono -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Teléfono <span class="text-error">*</span></span>
+              </label>
+              <input 
+                type="tel" 
+                formControlName="telefono"
+                class="input input-bordered w-full"
+                [class.input-error]="isFieldInvalid('telefono')" />
+              @if (isFieldInvalid('telefono')) {
+                <label class="label">
+                  <span class="label-text-alt text-error">El teléfono es obligatorio</span>
+                </label>
+              }
+            </div>
+
+            <!-- Tipo Documento -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Tipo Documento <span class="text-error">*</span></span>
+              </label>
+              <select 
+                formControlName="tipoDocumento"
+                class="select select-bordered w-full"
+                [class.select-error]="isFieldInvalid('tipoDocumento')">
+                <option value="">Seleccionar...</option>
+                <option value="RUT">RUT</option>
+                <option value="DNI">DNI</option>
+                <option value="PASAPORTE">PASAPORTE</option>
+                <option value="CI">CI</option>
+              </select>
+              @if (isFieldInvalid('tipoDocumento')) {
+                <label class="label">
+                  <span class="label-text-alt text-error">Selecciona un tipo de documento</span>
+                </label>
+              }
+            </div>
+
+            <!-- Número Documento -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Número Documento <span class="text-error">*</span></span>
+              </label>
+              <input 
+                type="text" 
+                formControlName="numeroDocumento"
+                class="input input-bordered w-full"
+                [class.input-error]="isFieldInvalid('numeroDocumento')" />
+              @if (isFieldInvalid('numeroDocumento')) {
+                <label class="label">
+                  <span class="label-text-alt text-error">El número de documento es obligatorio</span>
+                </label>
+              }
+            </div>
+
+            <!-- Género -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Género <span class="text-error">*</span></span>
+              </label>
+              <select 
+                formControlName="genero"
+                class="select select-bordered w-full"
+                [class.select-error]="isFieldInvalid('genero')">
+                <option value="">Seleccionar...</option>
+                <option value="M">Masculino</option>
+                <option value="F">Femenino</option>
+                <option value="OTRO">Otro</option>
+              </select>
+              @if (isFieldInvalid('genero')) {
+                <label class="label">
+                  <span class="label-text-alt text-error">Selecciona un género</span>
+                </label>
+              }
+            </div>
+
+            <!-- Fecha Nacimiento -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Fecha de Nacimiento <span class="text-error">*</span></span>
+              </label>
+              <input 
+                type="date" 
+                formControlName="fechaNacimiento"
+                class="input input-bordered w-full"
+                [max]="getCurrentDate()"
+                [class.input-error]="isFieldInvalid('fechaNacimiento')" />
+              @if (isFieldInvalid('fechaNacimiento')) {
+                <label class="label">
+                  <span class="label-text-alt text-error">Fecha válida requerida</span>
+                </label>
+              }
+            </div>
+
+            <!-- Lugar Nacimiento -->
+            <div class="form-control md:col-span-2">
+              <label class="label">
+                <span class="label-text">Lugar de Nacimiento <span class="text-error">*</span></span>
+              </label>
+              <input 
+                type="text" 
+                formControlName="lugarNacimiento"
+                class="input input-bordered w-full"
+                [class.input-error]="isFieldInvalid('lugarNacimiento')" />
+              @if (isFieldInvalid('lugarNacimiento')) {
+                <label class="label">
+                  <span class="label-text-alt text-error">El lugar de nacimiento es obligatorio</span>
+                </label>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Información de Contacto -->
+        <div class="space-y-4 mb-6">
+          <h4 class="font-semibold text-lg flex items-center gap-2 border-b pb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Información de Contacto
+          </h4>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Dirección -->
+            <div class="form-control md:col-span-2">
+              <label class="label">
+                <span class="label-text">Dirección <span class="text-error">*</span></span>
+              </label>
+              <input 
+                type="text" 
+                formControlName="direccion"
+                class="input input-bordered w-full"
+                [class.input-error]="isFieldInvalid('direccion')" />
+              @if (isFieldInvalid('direccion')) {
+                <label class="label">
+                  <span class="label-text-alt text-error">La dirección es obligatoria</span>
+                </label>
+              }
+            </div>
+
+            <!-- Código Postal -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Código Postal <span class="text-error">*</span></span>
+              </label>
+              <input 
+                type="text" 
+                formControlName="codigoPostal"
+                class="input input-bordered w-full"
+                [class.input-error]="isFieldInvalid('codigoPostal')" />
+              @if (isFieldInvalid('codigoPostal')) {
+                <label class="label">
+                  <span class="label-text-alt text-error">El código postal es obligatorio</span>
+                </label>
+              }
+            </div>
+
+            <!-- País -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">País <span class="text-error">*</span></span>
+              </label>
+              <input 
+                type="text" 
+                formControlName="pais"
+                class="input input-bordered w-full"
+                [class.input-error]="isFieldInvalid('pais')" />
+              @if (isFieldInvalid('pais')) {
+                <label class="label">
+                  <span class="label-text-alt text-error">El país es obligatorio</span>
+                </label>
+              }
+            </div>
+
+            <!-- Localización -->
+            <div class="form-control md:col-span-2">
+              <label class="label">
+                <span class="label-text">Localización <span class="text-error">*</span></span>
+              </label>
+              <input 
+                type="text" 
+                formControlName="localizacion"
+                class="input input-bordered w-full"
+                placeholder="Ciudad, Región"
+                [class.input-error]="isFieldInvalid('localizacion')" />
+              @if (isFieldInvalid('localizacion')) {
+                <label class="label">
+                  <span class="label-text-alt text-error">La localización es obligatoria</span>
+                </label>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Disponibilidad -->
+        <div class="space-y-4 mb-6">
+          <h4 class="font-semibold text-lg flex items-center gap-2 border-b pb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Disponibilidad
+          </h4>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Disponibilidad Desde -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Disponibilidad Desde <span class="text-error">*</span></span>
+              </label>
+              <input 
+                type="date" 
+                formControlName="disponibilidadDesde"
+                class="input input-bordered w-full"
+                [class.input-error]="isFieldInvalid('disponibilidadDesde')" />
+              @if (isFieldInvalid('disponibilidadDesde')) {
+                <label class="label">
+                  <span class="label-text-alt text-error">Fecha requerida</span>
+                </label>
+              }
+            </div>
+
+            <!-- Disponibilidad Hasta -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Disponibilidad Hasta <span class="text-error">*</span></span>
+              </label>
+              <input 
+                type="date" 
+                formControlName="disponibilidadHasta"
+                class="input input-bordered w-full"
+                [class.input-error]="isFieldInvalid('disponibilidadHasta')" />
+              @if (isFieldInvalid('disponibilidadHasta')) {
+                <label class="label">
+                  <span class="label-text-alt text-error">Fecha requerida</span>
+                </label>
+              }
+            </div>
+          </div>
+        </div>
+        
+        <!-- Gestión de Adjuntos -->
+        <div class="space-y-4 mb-6">
+          <h4 class="font-semibold text-lg flex items-center gap-2 border-b pb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Gestión de Documentos Adjuntos
+          </h4>
+
+          <!-- Adjuntos existentes -->
+          @if (adjuntosExistentes.length > 0) {
+            <div class="space-y-2">
+              <h5 class="font-medium text-sm opacity-70">Documentos Actuales:</h5>
+              @for (adjunto of adjuntosExistentes.controls; track $index; let i = $index) {
+                <div [formGroup]="$any(adjunto)" 
+                     class="flex items-center gap-3 p-3 rounded-lg transition-colors"
+                     [class.bg-base-200]="!isMarkedForDeletion(i)"
+                     [class.bg-error]="isMarkedForDeletion(i)"
+                     [class.opacity-50]="isMarkedForDeletion(i)">
+                  <span class="text-2xl">{{ getFileIcon(adjunto.get('extension')?.value) }}</span>
+                  <div class="flex-1 min-w-0">
+                    <div class="text-sm font-medium truncate"
+                         [class.line-through]="isMarkedForDeletion(i)">
+                      {{ adjunto.get('nombreArchivo')?.value }}
+                    </div>
+                    <div class="text-xs opacity-60">
+                      {{ adjunto.get('extension')?.value?.toUpperCase() }}
+                    </div>
+                  </div>
+                  <button 
+                    type="button"
+                    class="btn btn-sm btn-circle"
+                    [class.btn-error]="!isMarkedForDeletion(i)"
+                    [class.btn-warning]="isMarkedForDeletion(i)"
+                    (click)="toggleDeleteExistingAdjunto(i)"
+                    [title]="isMarkedForDeletion(i) ? 'Cancelar eliminación' : 'Marcar para eliminar'">
+                    @if (isMarkedForDeletion(i)) {
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                      </svg>
+                    } @else {
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    }
+                  </button>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Nuevos adjuntos -->
+          @if (adjuntosNuevos.length > 0) {
+            <div class="space-y-2 mt-4">
+              <h5 class="font-medium text-sm opacity-70">Nuevos Documentos:</h5>
+              @for (adjunto of adjuntosNuevos.controls; track $index; let i = $index) {
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-start bg-success bg-opacity-10 p-4 rounded-lg" [formGroup]="$any(adjunto)">
+                  <div class="form-control md:col-span-7">
+                    <label class="label">
+                      <span class="label-text">Nombre del Archivo</span>
+                    </label>
+                    <input 
+                      type="text" 
+                      formControlName="nombreArchivo"
+                      class="input input-bordered w-full input-sm"
+                      placeholder="Ej: curriculum_vitae.pdf"
+                      [class.input-error]="adjunto.get('nombreArchivo')?.invalid && adjunto.get('nombreArchivo')?.touched" />
+                  </div>
+                  <div class="form-control md:col-span-4">
+                    <label class="label">
+                      <span class="label-text">Tipo</span>
+                    </label>
+                    <select 
+                      formControlName="extension"
+                      class="select select-bordered w-full select-sm">
+                      <option value="pdf">PDF</option>
+                      <option value="doc">DOC</option>
+                      <option value="docx">DOCX</option>
+                      <option value="jpg">JPG</option>
+                      <option value="png">PNG</option>
+                      <option value="xlsx">XLSX</option>
+                      <option value="txt">TXT</option>
+                    </select>
+                  </div>
+                  <div class="form-control md:col-span-1 md:pt-8">
+                    <button 
+                      type="button"
+                      class="btn btn-error btn-sm btn-circle"
+                      (click)="removeNewAdjunto(i)"
+                      title="Eliminar nuevo adjunto">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Botón agregar nuevo adjunto -->
+          <button 
+            type="button"
+            class="btn btn-outline btn-primary btn-sm gap-2"
+            (click)="addNewAdjunto()">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Agregar Nuevo Documento
+          </button>
+
+          @if (adjuntosExistentes.length === 0 && adjuntosNuevos.length === 0) {
+            <div class="text-center py-4 text-sm opacity-60">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto mb-2 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+              No hay documentos adjuntos
+            </div>
+          }
+        </div>
+
+        <!-- Botones del modal -->
+        <div class="modal-action">
+          <button 
+            type="button"
+            class="btn btn-ghost"
+            (click)="closeEditModal()"
+            [disabled]="saving()">
+            Cancelar
+          </button>
+          <button 
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="saving() || candidatoForm.invalid">
+            @if (saving()) {
+              <span class="loading loading-spinner loading-sm"></span>
+              <span>Guardando...</span>
+            }
+            @if (!saving()) {
+              Actualizar Candidato
             }
           </button>
         </div>

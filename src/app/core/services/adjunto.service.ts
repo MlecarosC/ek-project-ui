@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { catchError, timeout } from 'rxjs/operators';
+import { timeout } from 'rxjs/operators';
 import { environment } from '../../../environments/environment.development';
 import { Adjunto } from '../../shared/models/adjunto.model';
 import { AdjuntoCreate } from '../../shared/models/adjunto-create.model';
@@ -15,6 +15,13 @@ export class AdjuntoService {
 
   createAdjuntos(adjuntos: AdjuntoCreate[]): Observable<Adjunto[]> {
     return this.http.post<Adjunto[]>(this.apiUrl, adjuntos).pipe(
+      timeout(environment.apiTimeout)
+    );
+  }
+
+  deleteAdjunto(adjuntoId: number): Observable<void> {
+    const url = `${this.apiUrl}/${adjuntoId}`;
+    return this.http.delete<void>(url).pipe(
       timeout(environment.apiTimeout)
     );
   }

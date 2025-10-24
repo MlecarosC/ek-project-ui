@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map, catchError, tap, switchMap } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
 import { CandidatoService } from '../../core/services/candidato.service';
 import { StorageService } from '../../core/services/storage.service';
 import { AvatarService } from '../../core/services/avatar.service';
@@ -14,6 +14,7 @@ import { CandidatoView } from '../../shared/models/candidato-view.model';
 import { Candidato } from '../../shared/models/candidato.model';
 import { AdjuntoService } from '../../core/services/adjunto.service';
 import { AdjuntoCreate } from '../../shared/models/adjunto-create.model';
+import { Adjunto } from '../../shared/models/adjunto.model';
 
 @Component({
   selector: 'app-candidatos',
@@ -41,6 +42,10 @@ export class CandidatosComponent {
 
   private showCreateModalSignal = signal(false);
   private savingSignal = signal(false);
+
+  private showEditModalSignal = signal(false);
+  private candidatoToEditSignal = signal<CandidatoView | null>(null);
+  private originalAdjuntosSignal = signal<Adjunto[]>([]);
   
   private showToastSignal = signal(false);
   private toastMessageSignal = signal('');
@@ -48,6 +53,9 @@ export class CandidatosComponent {
 
   readonly showCreateModal = this.showCreateModalSignal.asReadonly();
   readonly saving = this.savingSignal.asReadonly();
+
+  readonly showEditModal = this.showEditModalSignal.asReadonly();
+  readonly candidatoToEdit = this.candidatoToEditSignal.asReadonly();
 
   searchTermInput = signal<string>('');
 
@@ -403,7 +411,167 @@ export class CandidatosComponent {
 
   onModalBackdropClick(event: MouseEvent): void {
     if ((event.target as HTMLElement).classList.contains('modal')) {
-      this.closeCreateModal();
+      if (this.showCreateModal()) {
+        this.closeCreateModal();
+      } else if (this.showEditModal()) {
+        this.closeEditModal();
+      }
     }
+  }
+
+  // Métodos para el modal de edición
+  openEditModal(candidato: CandidatoView): void {
+    this.candidatoToEditSignal.set(candidato);
+    this.originalAdjuntosSignal.set([...candidato.adjuntos]);
+    this.initializeEditForm(candidato);
+    this.showEditModalSignal.set(true);
+  }
+
+  private initializeEditForm(candidato: CandidatoView): void {
+    this.candidatoForm = this.fb.group({
+      nombre: [candidato.nombre, [Validators.required, Validators.maxLength(50)]],
+      apellidos: [candidato.apellidos, [Validators.required, Validators.maxLength(50)]],
+      email: [candidato.email, [Validators.required, Validators.email, Validators.maxLength(150)]],
+      telefono: [candidato.telefono, [Validators.required, Validators.maxLength(20)]],
+      tipoDocumento: [candidato.tipoDocumento, Validators.required],
+      numeroDocumento: [candidato.numeroDocumento, [Validators.required, Validators.maxLength(30)]],
+      genero: [candidato.genero, Validators.required],
+      fechaNacimiento: [candidato.fechaNacimiento, Validators.required],
+      lugarNacimiento: [candidato.lugarNacimiento, [Validators.required, Validators.maxLength(200)]],
+      direccion: [candidato.direccion, [Validators.required, Validators.maxLength(200)]],
+      codigoPostal: [candidato.codigoPostal, [Validators.required, Validators.maxLength(20)]],
+      pais: [candidato.pais, [Validators.required, Validators.maxLength(50)]],
+      localizacion: [candidato.localizacion, [Validators.required, Validators.maxLength(150)]],
+      disponibilidadDesde: [candidato.disponibilidadDesde, Validators.required],
+      disponibilidadHasta: [candidato.disponibilidadHasta, Validators.required],
+      adjuntosExistentes: this.fb.array([]),
+      adjuntosNuevos: this.fb.array([])
+    });
+
+    // Cargar adjuntos existentes
+    candidato.adjuntos.forEach(adjunto => {
+      this.addExistingAdjunto(adjunto);
+    });
+  }
+
+  closeEditModal(): void {
+    if (!this.saving()) {
+      this.showEditModalSignal.set(false);
+      this.candidatoToEditSignal.set(null);
+      this.originalAdjuntosSignal.set([]);
+      this.candidatoForm.reset();
+    }
+  }
+
+  updateCandidato(): void {
+    if (this.candidatoForm.invalid) {
+      this.candidatoForm.markAllAsTouched();
+      return;
+    }
+
+    const candidato = this.candidatoToEdit();
+    if (!candidato) return;
+
+    this.savingSignal.set(true);
+
+    const { adjuntosExistentes, adjuntosNuevos, ...candidatoData } = this.candidatoForm.value;
+
+    // 1. Actualizar datos del candidato
+    this.candidatoService.updateCandidato(candidato.id, candidatoData).pipe(
+      switchMap(() => {
+        const deleteOperations = adjuntosExistentes
+          .filter((adj: any) => adj.markedForDeletion)
+          .map((adj: any) => this.adjuntoService.deleteAdjunto(adj.id));
+
+        if (deleteOperations.length > 0) {
+          return forkJoin(deleteOperations);
+        }
+        return of([]);
+      }),
+      switchMap(() => {
+        if (adjuntosNuevos && adjuntosNuevos.length > 0) {
+          const adjuntosData: AdjuntoCreate[] = adjuntosNuevos.map((adj: any) => ({
+            candidatoId: candidato.id,
+            nombreArchivo: adj.nombreArchivo,
+            extension: adj.extension
+          }));
+          
+          return this.adjuntoService.createAdjuntos(adjuntosData);
+        }
+        return of([]);
+      }),
+      switchMap(() => this.candidatoService.getAllCandidatosConAdjuntos())
+    ).subscribe({
+      next: (candidatos) => {
+        const savedAvatars = this.avatarService.getAvatarMap();
+        
+        const candidatosActualizados = candidatos.map((c) => ({
+          ...c,
+          avatarUrl: this.avatarService.getOrAssignAvatar(c.id, savedAvatars),
+          adjuntos: c.adjuntos || []
+        }));
+
+        this.candidatosSignal.set(candidatosActualizados);
+        this.avatarService.saveAvatars(candidatosActualizados);
+
+        this.showToastWithMessage('Candidato actualizado exitosamente', 'success');
+        this.savingSignal.set(false);
+        this.closeEditModal();
+      },
+      error: (error) => {
+        console.error('Error al actualizar candidato:', error);
+        let errorMessage = 'Error al actualizar el candidato. Por favor, intenta nuevamente.';
+        
+        if (error.status === 409) {
+          errorMessage = 'El email ya está registrado.';
+        } else if (error.status === 400 && error.error?.validationErrors) {
+          errorMessage = 'Por favor corrige los errores del formulario.';
+        }
+        
+        this.showToastWithMessage(errorMessage, 'error');
+        this.savingSignal.set(false);
+      }
+    });
+  }
+
+  // Métodos para gestión de adjuntos en edición
+  get adjuntosExistentes(): FormArray {
+    return this.candidatoForm.get('adjuntosExistentes') as FormArray;
+  }
+
+  get adjuntosNuevos(): FormArray {
+    return this.candidatoForm.get('adjuntosNuevos') as FormArray;
+  }
+
+  addExistingAdjunto(adjunto: Adjunto): void {
+    const adjuntoGroup = this.fb.group({
+      id: [adjunto.id],
+      nombreArchivo: [adjunto.nombreArchivo],
+      extension: [adjunto.extension],
+      markedForDeletion: [false]
+    });
+    this.adjuntosExistentes.push(adjuntoGroup);
+  }
+
+  addNewAdjunto(): void {
+    const adjuntoGroup = this.fb.group({
+      nombreArchivo: ['', [Validators.required, Validators.maxLength(255)]],
+      extension: ['pdf', Validators.required]
+    });
+    this.adjuntosNuevos.push(adjuntoGroup);
+  }
+
+  removeNewAdjunto(index: number): void {
+    this.adjuntosNuevos.removeAt(index);
+  }
+
+  toggleDeleteExistingAdjunto(index: number): void {
+    const adjunto = this.adjuntosExistentes.at(index);
+    const currentValue = adjunto.get('markedForDeletion')?.value;
+    adjunto.get('markedForDeletion')?.setValue(!currentValue);
+  }
+
+  isMarkedForDeletion(index: number): boolean {
+    return this.adjuntosExistentes.at(index).get('markedForDeletion')?.value || false;
   }
 }
