@@ -381,11 +381,10 @@
 
 <!-- Modal para crear candidato -->
 @if (showCreateModal()) {
-  <dialog class="modal modal-open">
-    <div class="modal-box max-w-4xl max-h-[90vh] overflow-y-auto">
+  <dialog class="modal modal-open" (click)="onModalBackdropClick($event)">
+    <div class="modal-box max-w-4xl max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
       <h3 class="font-bold text-xl mb-6">Agregar Nuevo Candidato</h3>
-      
-      <form #candidatoForm="ngForm" (ngSubmit)="candidatoForm.valid && createCandidato(candidatoForm.value)">
+      <form [formGroup]="candidatoForm" (ngSubmit)="createCandidato()">
         <!-- Información Personal -->
         <div class="space-y-4 mb-6">
           <h4 class="font-semibold text-lg flex items-center gap-2 border-b pb-2">
@@ -403,14 +402,10 @@
               </label>
               <input 
                 type="text" 
-                name="nombre"
-                class="input input-bordered"
-                ngModel
-                required
-                maxlength="50"
-                #nombre="ngModel"
-                [class.input-error]="nombre.invalid && nombre.touched" />
-              @if (nombre.invalid && nombre.touched) {
+                formControlName="nombre"
+                class="input input-bordered w-full"
+                [class.input-error]="isFieldInvalid('nombre')" />
+              @if (isFieldInvalid('nombre')) {
                 <label class="label">
                   <span class="label-text-alt text-error">El nombre es obligatorio (máx. 50 caracteres)</span>
                 </label>
@@ -424,14 +419,10 @@
               </label>
               <input 
                 type="text" 
-                name="apellidos"
-                class="input input-bordered"
-                ngModel
-                required
-                maxlength="50"
-                #apellidos="ngModel"
-                [class.input-error]="apellidos.invalid && apellidos.touched" />
-              @if (apellidos.invalid && apellidos.touched) {
+                formControlName="apellidos"
+                class="input input-bordered w-full"
+                [class.input-error]="isFieldInvalid('apellidos')" />
+              @if (isFieldInvalid('apellidos')) {
                 <label class="label">
                   <span class="label-text-alt text-error">Los apellidos son obligatorios (máx. 50 caracteres)</span>
                 </label>
@@ -445,15 +436,10 @@
               </label>
               <input 
                 type="email" 
-                name="email"
-                class="input input-bordered"
-                ngModel
-                required
-                email
-                maxlength="150"
-                #email="ngModel"
-                [class.input-error]="email.invalid && email.touched" />
-              @if (email.invalid && email.touched) {
+                formControlName="email"
+                class="input input-bordered w-full"
+                [class.input-error]="isFieldInvalid('email')" />
+              @if (isFieldInvalid('email')) {
                 <label class="label">
                   <span class="label-text-alt text-error">Email válido requerido</span>
                 </label>
@@ -467,14 +453,10 @@
               </label>
               <input 
                 type="tel" 
-                name="telefono"
-                class="input input-bordered"
-                ngModel
-                required
-                maxlength="20"
-                #telefono="ngModel"
-                [class.input-error]="telefono.invalid && telefono.touched" />
-              @if (telefono.invalid && telefono.touched) {
+                formControlName="telefono"
+                class="input input-bordered w-full"
+                [class.input-error]="isFieldInvalid('telefono')" />
+              @if (isFieldInvalid('telefono')) {
                 <label class="label">
                   <span class="label-text-alt text-error">El teléfono es obligatorio</span>
                 </label>
@@ -487,19 +469,16 @@
                 <span class="label-text">Tipo Documento <span class="text-error">*</span></span>
               </label>
               <select 
-                name="tipoDocumento"
-                class="select select-bordered"
-                ngModel
-                required
-                #tipoDocumento="ngModel"
-                [class.select-error]="tipoDocumento.invalid && tipoDocumento.touched">
+                formControlName="tipoDocumento"
+                class="select select-bordered w-full"
+                [class.select-error]="isFieldInvalid('tipoDocumento')">
                 <option value="">Seleccionar...</option>
                 <option value="RUT">RUT</option>
                 <option value="DNI">DNI</option>
                 <option value="PASAPORTE">PASAPORTE</option>
                 <option value="CI">CI</option>
               </select>
-              @if (tipoDocumento.invalid && tipoDocumento.touched) {
+              @if (isFieldInvalid('tipoDocumento')) {
                 <label class="label">
                   <span class="label-text-alt text-error">Selecciona un tipo de documento</span>
                 </label>
@@ -513,14 +492,10 @@
               </label>
               <input 
                 type="text" 
-                name="numeroDocumento"
-                class="input input-bordered"
-                ngModel
-                required
-                maxlength="30"
-                #numeroDocumento="ngModel"
-                [class.input-error]="numeroDocumento.invalid && numeroDocumento.touched" />
-              @if (numeroDocumento.invalid && numeroDocumento.touched) {
+                formControlName="numeroDocumento"
+                class="input input-bordered w-full"
+                [class.input-error]="isFieldInvalid('numeroDocumento')" />
+              @if (isFieldInvalid('numeroDocumento')) {
                 <label class="label">
                   <span class="label-text-alt text-error">El número de documento es obligatorio</span>
                 </label>
@@ -533,18 +508,15 @@
                 <span class="label-text">Género <span class="text-error">*</span></span>
               </label>
               <select 
-                name="genero"
-                class="select select-bordered"
-                ngModel
-                required
-                #genero="ngModel"
-                [class.select-error]="genero.invalid && genero.touched">
+                formControlName="genero"
+                class="select select-bordered w-full"
+                [class.select-error]="isFieldInvalid('genero')">
                 <option value="">Seleccionar...</option>
                 <option value="M">Masculino</option>
                 <option value="F">Femenino</option>
                 <option value="OTRO">Otro</option>
               </select>
-              @if (genero.invalid && genero.touched) {
+              @if (isFieldInvalid('genero')) {
                 <label class="label">
                   <span class="label-text-alt text-error">Selecciona un género</span>
                 </label>
@@ -558,14 +530,11 @@
               </label>
               <input 
                 type="date" 
-                name="fechaNacimiento"
-                class="input input-bordered"
-                ngModel
-                required
+                formControlName="fechaNacimiento"
+                class="input input-bordered w-full"
                 [max]="getCurrentDate()"
-                #fechaNacimiento="ngModel"
-                [class.input-error]="fechaNacimiento.invalid && fechaNacimiento.touched" />
-              @if (fechaNacimiento.invalid && fechaNacimiento.touched) {
+                [class.input-error]="isFieldInvalid('fechaNacimiento')" />
+              @if (isFieldInvalid('fechaNacimiento')) {
                 <label class="label">
                   <span class="label-text-alt text-error">Fecha válida requerida</span>
                 </label>
@@ -579,14 +548,10 @@
               </label>
               <input 
                 type="text" 
-                name="lugarNacimiento"
-                class="input input-bordered"
-                ngModel
-                required
-                maxlength="200"
-                #lugarNacimiento="ngModel"
-                [class.input-error]="lugarNacimiento.invalid && lugarNacimiento.touched" />
-              @if (lugarNacimiento.invalid && lugarNacimiento.touched) {
+                formControlName="lugarNacimiento"
+                class="input input-bordered w-full"
+                [class.input-error]="isFieldInvalid('lugarNacimiento')" />
+              @if (isFieldInvalid('lugarNacimiento')) {
                 <label class="label">
                   <span class="label-text-alt text-error">El lugar de nacimiento es obligatorio</span>
                 </label>
@@ -613,14 +578,10 @@
               </label>
               <input 
                 type="text" 
-                name="direccion"
-                class="input input-bordered"
-                ngModel
-                required
-                maxlength="200"
-                #direccion="ngModel"
-                [class.input-error]="direccion.invalid && direccion.touched" />
-              @if (direccion.invalid && direccion.touched) {
+                formControlName="direccion"
+                class="input input-bordered w-full"
+                [class.input-error]="isFieldInvalid('direccion')" />
+              @if (isFieldInvalid('direccion')) {
                 <label class="label">
                   <span class="label-text-alt text-error">La dirección es obligatoria</span>
                 </label>
@@ -634,14 +595,10 @@
               </label>
               <input 
                 type="text" 
-                name="codigoPostal"
-                class="input input-bordered"
-                ngModel
-                required
-                maxlength="20"
-                #codigoPostal="ngModel"
-                [class.input-error]="codigoPostal.invalid && codigoPostal.touched" />
-              @if (codigoPostal.invalid && codigoPostal.touched) {
+                formControlName="codigoPostal"
+                class="input input-bordered w-full"
+                [class.input-error]="isFieldInvalid('codigoPostal')" />
+              @if (isFieldInvalid('codigoPostal')) {
                 <label class="label">
                   <span class="label-text-alt text-error">El código postal es obligatorio</span>
                 </label>
@@ -655,14 +612,10 @@
               </label>
               <input 
                 type="text" 
-                name="pais"
-                class="input input-bordered"
-                ngModel
-                required
-                maxlength="50"
-                #pais="ngModel"
-                [class.input-error]="pais.invalid && pais.touched" />
-              @if (pais.invalid && pais.touched) {
+                formControlName="pais"
+                class="input input-bordered w-full"
+                [class.input-error]="isFieldInvalid('pais')" />
+              @if (isFieldInvalid('pais')) {
                 <label class="label">
                   <span class="label-text-alt text-error">El país es obligatorio</span>
                 </label>
@@ -676,15 +629,11 @@
               </label>
               <input 
                 type="text" 
-                name="localizacion"
-                class="input input-bordered"
-                ngModel
-                required
-                maxlength="150"
+                formControlName="localizacion"
+                class="input input-bordered w-full"
                 placeholder="Ciudad, Región"
-                #localizacion="ngModel"
-                [class.input-error]="localizacion.invalid && localizacion.touched" />
-              @if (localizacion.invalid && localizacion.touched) {
+                [class.input-error]="isFieldInvalid('localizacion')" />
+              @if (isFieldInvalid('localizacion')) {
                 <label class="label">
                   <span class="label-text-alt text-error">La localización es obligatoria</span>
                 </label>
@@ -710,13 +659,10 @@
               </label>
               <input 
                 type="date" 
-                name="disponibilidadDesde"
-                class="input input-bordered"
-                ngModel
-                required
-                #disponibilidadDesde="ngModel"
-                [class.input-error]="disponibilidadDesde.invalid && disponibilidadDesde.touched" />
-              @if (disponibilidadDesde.invalid && disponibilidadDesde.touched) {
+                formControlName="disponibilidadDesde"
+                class="input input-bordered w-full"
+                [class.input-error]="isFieldInvalid('disponibilidadDesde')" />
+              @if (isFieldInvalid('disponibilidadDesde')) {
                 <label class="label">
                   <span class="label-text-alt text-error">Fecha requerida</span>
                 </label>
@@ -730,19 +676,101 @@
               </label>
               <input 
                 type="date" 
-                name="disponibilidadHasta"
-                class="input input-bordered"
-                ngModel
-                required
-                #disponibilidadHasta="ngModel"
-                [class.input-error]="disponibilidadHasta.invalid && disponibilidadHasta.touched" />
-              @if (disponibilidadHasta.invalid && disponibilidadHasta.touched) {
+                formControlName="disponibilidadHasta"
+                class="input input-bordered w-full"
+                [class.input-error]="isFieldInvalid('disponibilidadHasta')" />
+              @if (isFieldInvalid('disponibilidadHasta')) {
                 <label class="label">
                   <span class="label-text-alt text-error">Fecha requerida</span>
                 </label>
               }
             </div>
           </div>
+        </div>
+
+        <!-- Adjuntos (Opcional) -->
+        <div class="space-y-4 mb-6">
+          <h4 class="font-semibold text-lg flex items-center gap-2 border-b pb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Documentos Adjuntos (Opcional)
+          </h4>
+          
+          <!-- Lista de adjuntos -->
+          @for (adjunto of adjuntos.controls; track $index; let i = $index) {
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-start bg-base-200 p-4 rounded-lg" [formGroup]="$any(adjunto)">
+              <!-- Nombre del archivo -->
+              <div class="form-control md:col-span-7">
+                <label class="label">
+                  <span class="label-text">Nombre del Archivo</span>
+                </label>
+                <input 
+                  type="text" 
+                  formControlName="nombreArchivo"
+                  class="input input-bordered w-full input-sm"
+                  placeholder="Ej: curriculum_vitae.pdf"
+                  [class.input-error]="adjunto.get('nombreArchivo')?.invalid && adjunto.get('nombreArchivo')?.touched" />
+                @if (adjunto.get('nombreArchivo')?.invalid && adjunto.get('nombreArchivo')?.touched) {
+                  <label class="label">
+                    <span class="label-text-alt text-error">Nombre requerido (máx. 255 caracteres)</span>
+                  </label>
+                }
+              </div>
+
+              <!-- Extensión -->
+              <div class="form-control md:col-span-4">
+                <label class="label">
+                  <span class="label-text">Tipo</span>
+                </label>
+                <select 
+                  formControlName="extension"
+                  class="select select-bordered w-full select-sm"
+                  [class.select-error]="adjunto.get('extension')?.invalid && adjunto.get('extension')?.touched">
+                  <option value="pdf">PDF</option>
+                  <option value="doc">DOC</option>
+                  <option value="docx">DOCX</option>
+                  <option value="jpg">JPG</option>
+                  <option value="png">PNG</option>
+                  <option value="xlsx">XLSX</option>
+                  <option value="txt">TXT</option>
+                </select>
+              </div>
+
+              <!-- Botón eliminar -->
+              <div class="form-control md:col-span-1 md:pt-8">
+                <button 
+                  type="button"
+                  class="btn btn-error btn-sm btn-circle"
+                  (click)="removeAdjunto(i)"
+                  title="Eliminar adjunto">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- Botón agregar adjunto -->
+          <button 
+            type="button"
+            class="btn btn-outline btn-primary btn-sm gap-2"
+            (click)="addAdjunto()">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Agregar Documento
+          </button>
+
+          @if (adjuntos.length === 0) {
+            <div class="text-center py-4 text-sm opacity-60">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto mb-2 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+              No hay documentos agregados
+            </div>
+          }
         </div>
 
         <!-- Botones del modal -->
@@ -759,9 +787,10 @@
             class="btn btn-primary"
             [disabled]="saving() || candidatoForm.invalid">
             @if (saving()) {
-              <span class="loading loading-spinner"></span>
-              Guardando...
-            } @else {
+              <span class="loading loading-spinner loading-sm"></span>
+              <span>Guardando...</span>
+            }
+            @if (!saving()) {
               Crear Candidato
             }
           </button>

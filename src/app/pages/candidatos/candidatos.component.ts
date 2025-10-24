@@ -1,8 +1,8 @@
 import { Component, signal, computed, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { map, catchError, tap } from 'rxjs/operators';
+import { map, catchError, tap, switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { CandidatoService } from '../../core/services/candidato.service';
 import { StorageService } from '../../core/services/storage.service';
@@ -12,15 +12,21 @@ import { getFileIcon } from '../../shared/constants/file-icons';
 import { debounceSignal } from '../../shared/utils/debounce-signal';
 import { CandidatoView } from '../../shared/models/candidato-view.model';
 import { Candidato } from '../../shared/models/candidato.model';
+import { AdjuntoService } from '../../core/services/adjunto.service';
+import { AdjuntoCreate } from '../../shared/models/adjunto-create.model';
 
 @Component({
   selector: 'app-candidatos',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './candidatos.component.html',
 })
 export class CandidatosComponent {
   Math = Math;
 
+  private fb = inject(FormBuilder);
+  candidatoForm!: FormGroup;
+
+  private adjuntoService = inject(AdjuntoService);
   private candidatoService = inject(CandidatoService);
   private storageService = inject(StorageService);
   private avatarService = inject(AvatarService);
@@ -271,21 +277,66 @@ export class CandidatosComponent {
 
   // Métodos para el modal de creación
   openCreateModal(): void {
+    this.initializeForm();
     this.showCreateModalSignal.set(true);
+  }
+
+  private initializeForm(): void {
+    this.candidatoForm = this.fb.group({
+      nombre: ['', [Validators.required, Validators.maxLength(50)]],
+      apellidos: ['', [Validators.required, Validators.maxLength(50)]],
+      email: ['', [Validators.required, Validators.email, Validators.maxLength(150)]],
+      telefono: ['', [Validators.required, Validators.maxLength(20)]],
+      tipoDocumento: ['', Validators.required],
+      numeroDocumento: ['', [Validators.required, Validators.maxLength(30)]],
+      genero: ['', Validators.required],
+      fechaNacimiento: ['', Validators.required],
+      lugarNacimiento: ['', [Validators.required, Validators.maxLength(200)]],
+      direccion: ['', [Validators.required, Validators.maxLength(200)]],
+      codigoPostal: ['', [Validators.required, Validators.maxLength(20)]],
+      pais: ['', [Validators.required, Validators.maxLength(50)]],
+      localizacion: ['', [Validators.required, Validators.maxLength(150)]],
+      disponibilidadDesde: ['', Validators.required],
+      disponibilidadHasta: ['', Validators.required]
+    });
   }
 
   closeCreateModal(): void {
     if (!this.saving()) {
       this.showCreateModalSignal.set(false);
+      this.candidatoForm.reset();
     }
   }
 
-  createCandidato(candidatoData: Omit<Candidato, 'id'>): void {
+  createCandidato(): void {
+    if (this.candidatoForm.invalid) {
+      this.candidatoForm.markAllAsTouched();
+      return;
+    }
+
     this.savingSignal.set(true);
 
-    this.candidatoService.createCandidato(candidatoData).subscribe({
-      next: (nuevoCandidato) => {
-        // Asignar avatar al nuevo candidato
+    const { adjuntos, ...candidatoData } = this.candidatoForm.value;
+    
+    this.candidatoService.createCandidato(candidatoData).pipe(
+      switchMap((nuevoCandidato: Candidato) => {
+        // Si hay adjuntos, crearlos
+        if (adjuntos && adjuntos.length > 0) {
+          const adjuntosData: AdjuntoCreate[] = adjuntos.map((adj: any) => ({
+            candidatoId: nuevoCandidato.id,
+            nombreArchivo: adj.nombreArchivo,
+            extension: adj.extension
+          }));
+          
+          return this.adjuntoService.createAdjuntos(adjuntosData).pipe(
+            map(() => nuevoCandidato)
+          );
+        }
+        // Si no hay adjuntos, continuar
+        return of(nuevoCandidato);
+      })
+    ).subscribe({
+      next: (nuevoCandidato: Candidato) => {
         const savedAvatars = this.avatarService.getAvatarMap();
         const candidatoView: CandidatoView = {
           ...nuevoCandidato,
@@ -293,18 +344,13 @@ export class CandidatosComponent {
           adjuntos: []
         };
 
-        // Actualizar lista
         const updatedCandidatos = [candidatoView, ...this.candidatosSignal()];
         this.candidatosSignal.set(updatedCandidatos);
-        
-        // Guardar avatares
         this.avatarService.saveAvatars(updatedCandidatos);
 
         this.showToastWithMessage('Candidato creado exitosamente', 'success');
         this.savingSignal.set(false);
         this.closeCreateModal();
-        
-        // Ir a la primera página para ver el nuevo candidato
         this.goToPage(1);
       },
       error: (error) => {
@@ -323,7 +369,38 @@ export class CandidatosComponent {
     });
   }
 
+  get adjuntos(): FormArray {
+    return this.candidatoForm?.get('adjuntos') as FormArray ?? this.fb.array([]);
+  }
+
+  addAdjunto(): void {
+    const adjuntoGroup = this.fb.group({
+      nombreArchivo: ['', [Validators.required, Validators.maxLength(255)]],
+      extension: ['pdf', Validators.required]
+    });
+    this.adjuntos.push(adjuntoGroup);
+  }
+
+  removeAdjunto(index: number): void {
+    this.adjuntos.removeAt(index);
+  }
+
   getCurrentDate(): string {
     return new Date().toISOString().split('T')[0];
+  }
+
+  getControl(controlName: string) {
+    return this.candidatoForm.get(controlName);
+  }
+
+  isFieldInvalid(fieldName: string): boolean {
+    const field = this.getControl(fieldName);
+    return !!(field && field.invalid && field.touched);
+  }
+
+  onModalBackdropClick(event: MouseEvent): void {
+    if ((event.target as HTMLElement).classList.contains('modal')) {
+      this.closeCreateModal();
+    }
   }
 }
