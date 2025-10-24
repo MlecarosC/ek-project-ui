@@ -297,7 +297,8 @@ export class CandidatosComponent {
       pais: ['', [Validators.required, Validators.maxLength(50)]],
       localizacion: ['', [Validators.required, Validators.maxLength(150)]],
       disponibilidadDesde: ['', Validators.required],
-      disponibilidadHasta: ['', Validators.required]
+      disponibilidadHasta: ['', Validators.required],
+      adjuntos: this.fb.array([])
     });
   }
 
@@ -334,19 +335,21 @@ export class CandidatosComponent {
         }
         // Si no hay adjuntos, continuar
         return of(nuevoCandidato);
-      })
-    ).subscribe({
-      next: (nuevoCandidato: Candidato) => {
-        const savedAvatars = this.avatarService.getAvatarMap();
-        const candidatoView: CandidatoView = {
-          ...nuevoCandidato,
-          avatarUrl: this.avatarService.getOrAssignAvatar(nuevoCandidato.id, savedAvatars),
-          adjuntos: []
-        };
+      }),
 
-        const updatedCandidatos = [candidatoView, ...this.candidatosSignal()];
-        this.candidatosSignal.set(updatedCandidatos);
-        this.avatarService.saveAvatars(updatedCandidatos);
+      switchMap(() => this.candidatoService.getAllCandidatosConAdjuntos())
+    ).subscribe({
+      next: (candidatos) => {
+        const savedAvatars = this.avatarService.getAvatarMap();
+        
+        const candidatosActualizados = candidatos.map((candidato) => ({
+          ...candidato,
+          avatarUrl: this.avatarService.getOrAssignAvatar(candidato.id, savedAvatars),
+          adjuntos: candidato.adjuntos || []
+        }));
+
+        this.candidatosSignal.set(candidatosActualizados);
+        this.avatarService.saveAvatars(candidatosActualizados);
 
         this.showToastWithMessage('Candidato creado exitosamente', 'success');
         this.savingSignal.set(false);
@@ -370,7 +373,7 @@ export class CandidatosComponent {
   }
 
   get adjuntos(): FormArray {
-    return this.candidatoForm?.get('adjuntos') as FormArray ?? this.fb.array([]);
+    return this.candidatoForm.get('adjuntos') as FormArray;
   }
 
   addAdjunto(): void {

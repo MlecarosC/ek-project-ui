@@ -18,10 +18,4 @@ export class AdjuntoService {
       timeout(environment.apiTimeout)
     );
   }
-
-  getAdjuntosByCandidatoId(candidatoId: number): Observable<Adjunto[]> {
-    return this.http.get<Adjunto[]>(`${this.apiUrl}/candidato/${candidatoId}`).pipe(
-      timeout(environment.apiTimeout)
-    );
-  }
 }
