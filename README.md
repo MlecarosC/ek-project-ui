@@ -86,6 +86,7 @@ ek-project-ui/
 │   │   ├── core/                      # Funcionalidad central
 │   │   │   │
 │   │   │   └── services/              # Servicios de negocio
+│   │   │       ├── adjunto.service.ts
 │   │   │       ├── candidato.service.ts
 │   │   │       ├── candidato.service.spec.ts
 │   │   │       ├── avatar.service.ts
@@ -123,6 +124,8 @@ ek-project-ui/
 │   │   │   │   └── storage-keys.spec.ts
 │   │   │   │
 │   │   │   ├── models/                # Interfaces TypeScript
+│   │   │   │   ├── adjunto-create.model.ts
+│   │   │   │   ├── candidato-adjuntos.model.ts
 │   │   │   │   ├── candidato.model.ts
 │   │   │   │   ├── candidato-view.model.ts
 │   │   │   │   └── adjunto.model.ts
@@ -343,6 +346,11 @@ export class CandidatoService {
 
 ```
 GET http://localhost:8090/api/v1/candidatos
+POST http://localhost:8090/api/v1/candidatos
+PUT http://localhost:8090/api/v1/candidatos/{id}
+DELETE http://localhost:8090/api/v1/candidatos/{id}
+POST http://localhost:8090/api/v1/adjuntos
+DELETE http://localhost:8090/api/v1/adjuntos/{id}
 ```
 
 **Response esperado:**
@@ -414,54 +422,6 @@ CORS_ALLOWED_ORIGINS=http://localhost:4200
 
 <!-- Badges -->
 <span class="badge badge-primary">New</span>
-```
-
-## Estructura de Datos
-
-### Modelos TypeScript
-
-**Candidato** (`src/app/shared/models/candidato.model.ts`):
-```typescript
-export interface Candidato {
-  id: number;
-  nombre: string;
-  apellidos: string;
-  email: string;
-  telefono: string;
-  tipoDocumento: string;
-  numeroDocumento: string;
-  genero: string;
-  lugarNacimiento: string;
-  fechaNacimiento: string;
-  direccion: string;
-  codigoPostal: string;
-  pais: string;
-  localizacion: string;
-  disponibilidadDesde: string;
-  disponibilidadHasta: string;
-}
-```
-
-**Adjunto** (`src/app/shared/models/adjunto.model.ts`):
-```typescript
-export interface Adjunto {
-  id: number;
-  extension: string;
-  nombreArchivo: string;
-}
-
-export interface ResponseAdjunto {
-  candidato: Candidato;
-  adjuntos: Adjunto[];
-}
-```
-
-**CandidatoView** (`src/app/shared/models/candidato-view.model.ts`):
-```typescript
-export interface CandidatoView extends Candidato {
-  avatarUrl: string;      // URL del avatar (generado en frontend)
-  adjuntos: Adjunto[];    // Lista de documentos adjuntos
-}
 ```
 
 ## Pruebas Unitarias con Jest
